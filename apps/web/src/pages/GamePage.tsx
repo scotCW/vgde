@@ -124,7 +124,7 @@ export default function GamePage() {
   if (!code) return null;
   if (sessionQuery.isLoading) return <div className="p-8">Loading game…</div>;
   if (sessionQuery.isError || !session) {
-    return <div className="p-8 text-red-400">Couldn't load this game. Check the code and try again.</div>;
+    return <div className="p-8 text-danger">Couldn't load this game. Check the code and try again.</div>;
   }
 
   const me = session.players.find((p) => p.isMe);
@@ -155,20 +155,20 @@ export default function GamePage() {
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold">Game {session.joinCode}</h1>
-          <p className="text-sm text-slate-400">Share this code with your group.</p>
+          <p className="text-sm text-muted">Share this code with your group.</p>
         </div>
-        {session.status === "COMPLETED" && <span className="rounded-full bg-emerald-700 px-3 py-1 text-sm">Game over</span>}
+        {session.status === "COMPLETED" && <span className="rounded-full bg-emerald-700 px-3 py-1 text-sm text-white">Game over</span>}
       </header>
 
       <StandingsBar players={session.players} />
 
       {session.status === "LOBBY" && (
         <>
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-            <p className="mb-2 text-sm text-slate-400">Players ({session.players.length})</p>
+          <div className="rounded-2xl border border-border bg-surface p-4">
+            <p className="mb-2 text-sm text-muted">Players ({session.players.length})</p>
             <div className="flex flex-wrap gap-2">
               {session.players.map((p) => (
-                <span key={p.id} className="rounded-full bg-slate-800 px-3 py-1 text-sm">
+                <span key={p.id} className="rounded-full bg-surface-alt px-3 py-1 text-sm">
                   {p.displayName}
                   {p.isConfigurator && " (host)"}
                 </span>
@@ -213,11 +213,11 @@ export default function GamePage() {
               <button
                 onClick={() => void startGame()}
                 disabled={session.modeVoteOpen || session.tagVoteOpen}
-                className="w-full rounded-lg bg-indigo-600 px-4 py-3 font-semibold hover:bg-indigo-500 disabled:opacity-50"
+                className="w-full rounded-lg bg-indigo-600 px-4 py-3 font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
               >
                 {session.modeVoteOpen || session.tagVoteOpen ? "Waiting on the lobby vote…" : "Start game"}
               </button>
-              {startError && <p className="mt-2 text-sm text-red-400">{startError}</p>}
+              {startError && <p className="mt-2 text-sm text-danger">{startError}</p>}
             </div>
           )}
         </>
@@ -239,7 +239,7 @@ export default function GamePage() {
               onVoted={invalidateAll}
             />
           ) : (
-            <p className="text-slate-400">Waiting on the next batch of questions…</p>
+            <p className="text-muted">Waiting on the next batch of questions…</p>
           )}
           <ResultsPanel
             code={code}

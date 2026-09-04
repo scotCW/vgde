@@ -34,9 +34,9 @@ export default function LoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-900 p-8 shadow-xl">
+      <div className="w-full max-w-sm rounded-2xl border border-border bg-surface p-8 shadow-xl">
         <h1 className="mb-1 text-2xl font-bold">The Voting Game</h1>
-        <p className="mb-6 text-sm text-slate-400">
+        <p className="mb-6 text-sm text-muted">
           {passwordLoginEnabled
             ? mode === "login"
               ? "Sign in to join or host a game."
@@ -48,7 +48,7 @@ export default function LoginPage() {
           <form onSubmit={onSubmit} className="flex flex-col gap-3">
             {mode === "register" && (
               <input
-                className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+                className="rounded-lg border border-border-strong bg-input px-3 py-2"
                 placeholder="Display name"
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
@@ -57,7 +57,7 @@ export default function LoginPage() {
               />
             )}
             <input
-              className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              className="rounded-lg border border-border-strong bg-input px-3 py-2"
               type="email"
               placeholder="Email"
               value={email}
@@ -65,7 +65,7 @@ export default function LoginPage() {
               required
             />
             <input
-              className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              className="rounded-lg border border-border-strong bg-input px-3 py-2"
               type="password"
               placeholder="Password"
               value={password}
@@ -73,11 +73,11 @@ export default function LoginPage() {
               required
               minLength={mode === "register" ? 10 : undefined}
             />
-            {error && <p className="text-sm text-red-400">{error}</p>}
+            {error && <p className="text-sm text-danger">{error}</p>}
             <button
               type="submit"
               disabled={busy}
-              className="rounded-lg bg-indigo-600 px-3 py-2 font-medium hover:bg-indigo-500 disabled:opacity-50"
+              className="rounded-lg bg-indigo-600 px-3 py-2 font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
             >
               {mode === "login" ? "Sign in" : "Create account"}
             </button>
@@ -87,7 +87,7 @@ export default function LoginPage() {
         {oidcEnabled && (
           <a
             href="/auth/oidc/start"
-            className={`block rounded-lg border border-slate-700 px-3 py-2 text-center hover:bg-slate-800 ${
+            className={`block rounded-lg border border-border-strong px-3 py-2 text-center hover:bg-surface-alt ${
               passwordLoginEnabled ? "mt-3" : ""
             }`}
           >
@@ -97,7 +97,7 @@ export default function LoginPage() {
 
         {passwordLoginEnabled && (
           <button
-            className="mt-4 text-sm text-slate-400 hover:text-slate-200"
+            className="mt-4 text-sm text-muted hover:text-text"
             onClick={() => setMode(mode === "login" ? "register" : "login")}
           >
             {mode === "login" ? "Need an account? Register" : "Already have an account? Sign in"}

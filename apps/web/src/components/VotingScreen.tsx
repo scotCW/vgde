@@ -48,12 +48,12 @@ export default function VotingScreen({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="rounded-2xl border border-slate-800 bg-slate-900 p-4">
-        <p className="text-sm text-slate-400">
+      <div className="rounded-2xl border border-border bg-surface p-4">
+        <p className="text-sm text-muted">
           You've answered {answeredCount} of {questions.length}.
           {progress && ` The table has submitted ${progress.submitted} of ${progress.total} answers.`}
         </p>
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-subtle">
           Answer at your own pace — results appear once everyone has voted on this batch. Votes stay
           anonymous; no one sees who picked whom.
         </p>
@@ -66,10 +66,10 @@ export default function VotingScreen({
         const canAbstainByChoice = config.allowVoluntaryAbstain || (isDeck && q.hasAvailableTargets === false);
 
         return (
-          <div key={q.sessionQuestionId} className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+          <div key={q.sessionQuestionId} className="rounded-2xl border border-border bg-surface p-5">
             <p className="mb-3 text-lg font-medium">{q.text}</p>
             {q.myVote?.isAutoAbstain && (
-              <p className="mb-2 text-xs text-amber-400">
+              <p className="mb-2 text-xs text-warning">
                 You've already voted for everyone else — automatically abstained.
               </p>
             )}
@@ -87,8 +87,8 @@ export default function VotingScreen({
                       selected
                         ? "bg-indigo-600 text-white"
                         : disabled
-                          ? "cursor-not-allowed bg-slate-800 text-slate-600"
-                          : "bg-slate-800 text-slate-200 hover:bg-slate-700"
+                          ? "cursor-not-allowed bg-surface-alt text-subtle"
+                          : "bg-surface-alt text-text hover:bg-surface-alt-hover"
                     }`}
                     title={isDeck && !available && !selected ? "Already voted for this person" : undefined}
                   >
@@ -102,8 +102,8 @@ export default function VotingScreen({
                   onClick={() => void castVote(q.sessionQuestionId, null)}
                   className={`rounded-full px-3 py-1.5 text-sm font-medium ${
                     currentTarget === null && q.myVote
-                      ? "bg-slate-600 text-white"
-                      : "bg-slate-800 text-slate-300 hover:bg-slate-700"
+                      ? "bg-surface-strong text-white"
+                      : "bg-surface-alt text-text hover:bg-surface-alt-hover"
                   }`}
                 >
                   Abstain
@@ -111,7 +111,7 @@ export default function VotingScreen({
               )}
             </div>
             {errors[q.sessionQuestionId] && (
-              <p className="mt-2 text-sm text-red-400">{errors[q.sessionQuestionId]}</p>
+              <p className="mt-2 text-sm text-danger">{errors[q.sessionQuestionId]}</p>
             )}
           </div>
         );

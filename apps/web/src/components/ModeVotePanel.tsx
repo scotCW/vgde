@@ -41,11 +41,11 @@ export default function ModeVotePanel({ code, isHost, candidates, myVoteStatus, 
   }
 
   return (
-    <div className="rounded-2xl border-2 border-indigo-500 bg-indigo-950/30 p-5">
-      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-indigo-400">
+    <div className="rounded-2xl border-2 border-panel-accent-border bg-panel-accent p-5">
+      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-link">
         Group vote — pick the mode
       </p>
-      <p className="mb-3 text-sm text-slate-400">
+      <p className="mb-3 text-sm text-muted">
         The host handed this decision to the table.
         {progress && ` ${progress.submitted} of ${progress.total} have voted.`}
       </p>
@@ -62,11 +62,11 @@ export default function ModeVotePanel({ code, isHost, candidates, myVoteStatus, 
               className={`rounded-xl border px-4 py-2 text-left transition ${
                 selected
                   ? "border-indigo-400 bg-indigo-600 text-white"
-                  : "border-slate-700 bg-slate-900 hover:bg-slate-800"
+                  : "border-border-strong bg-surface hover:bg-surface-alt"
               }`}
             >
               <span className="block font-medium">{info.title}</span>
-              <span className="block text-xs text-slate-400">{info.blurb}</span>
+              <span className="block text-xs text-muted">{info.blurb}</span>
             </button>
           );
         })}
@@ -75,8 +75,8 @@ export default function ModeVotePanel({ code, isHost, candidates, myVoteStatus, 
           onClick={() => void vote(null)}
           className={`rounded-xl border px-4 py-2 text-sm ${
             myVoteStatus.voted && myVoteStatus.mode === null
-              ? "border-slate-500 bg-slate-700 text-white"
-              : "border-slate-700 bg-slate-900 text-slate-300 hover:bg-slate-800"
+              ? "border-border-strong bg-surface-alt-hover text-white"
+              : "border-border-strong bg-surface text-muted hover:bg-surface-alt"
           }`}
         >
           Abstain
@@ -84,14 +84,14 @@ export default function ModeVotePanel({ code, isHost, candidates, myVoteStatus, 
       </div>
 
       {myVoteStatus.voted && (
-        <p className="mt-3 text-xs text-slate-500">Vote recorded — you can change it until everyone's in.</p>
+        <p className="mt-3 text-xs text-subtle">Vote recorded — you can change it until everyone's in.</p>
       )}
 
       {isHost && (
         <button
           disabled={busy}
           onClick={() => void closeEarly()}
-          className="mt-4 text-sm text-slate-400 underline hover:text-slate-200"
+          className="mt-4 text-sm text-muted underline hover:text-text"
         >
           Tally now with whoever's voted
         </button>

@@ -33,11 +33,11 @@ export default function TieBreakPrompt({ code, tieBreak, players, onVoted }: Pro
   }
 
   return (
-    <div className="rounded-2xl border-2 border-amber-500 bg-amber-950/30 p-5">
-      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-amber-400">Tie-break</p>
+    <div className="rounded-2xl border-2 border-panel-warning-border bg-panel-warning p-5">
+      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-warning">Tie-break</p>
       <p className="mb-3 text-lg font-medium">{tieBreak.text}</p>
       {voted ? (
-        <p className="text-sm text-slate-400">Vote recorded — waiting on everyone else…</p>
+        <p className="text-sm text-muted">Vote recorded — waiting on everyone else…</p>
       ) : (
         <div className="flex flex-wrap gap-2">
           {candidates.map((p) => (
@@ -53,7 +53,7 @@ export default function TieBreakPrompt({ code, tieBreak, players, onVoted }: Pro
           <button
             disabled={busy}
             onClick={() => void vote(null)}
-            className="rounded-full bg-slate-800 px-3 py-1.5 text-sm font-medium text-slate-200 hover:bg-slate-700 disabled:opacity-50"
+            className="rounded-full bg-surface-alt px-3 py-1.5 text-sm font-medium text-text hover:bg-surface-alt-hover disabled:opacity-50"
           >
             Abstain
           </button>

@@ -58,19 +58,19 @@ export default function QuestionBankPage() {
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold">Question bank</h1>
-          <p className="text-sm text-slate-400">Browse every prompt before you play.</p>
+          <p className="text-sm text-muted">Browse every prompt before you play.</p>
         </div>
-        <Link to="/" className="text-sm text-indigo-400 underline hover:text-indigo-300">
+        <Link to="/" className="text-sm text-link underline hover:text-accent-hover">
           Back home
         </Link>
       </header>
 
-      <div className="flex flex-col gap-3 rounded-2xl border border-slate-800 bg-slate-900 p-4">
+      <div className="flex flex-col gap-3 rounded-2xl border border-border bg-surface p-4">
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search question text…"
-          className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+          className="rounded-lg border border-border-strong bg-input px-3 py-2"
         />
 
         {tagsQuery.data && tagsQuery.data.tags.length > 0 && (
@@ -84,7 +84,7 @@ export default function QuestionBankPage() {
                   className={`rounded-full border px-3 py-1 text-sm capitalize transition ${
                     active
                       ? "border-indigo-400 bg-indigo-600 text-white"
-                      : "border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700"
+                      : "border-border-strong bg-surface-alt text-text hover:bg-surface-alt-hover"
                   }`}
                 >
                   {tag}
@@ -94,7 +94,7 @@ export default function QuestionBankPage() {
             {activeTags.size > 0 && (
               <button
                 onClick={() => setActiveTags(new Set())}
-                className="rounded-full border border-slate-700 px-3 py-1 text-sm text-slate-400 hover:bg-slate-800"
+                className="rounded-full border border-border-strong px-3 py-1 text-sm text-muted hover:bg-surface-alt"
               >
                 Clear filters
               </button>
@@ -103,11 +103,11 @@ export default function QuestionBankPage() {
         )}
       </div>
 
-      {questionsQuery.isLoading && <p className="text-slate-400">Loading…</p>}
-      {questionsQuery.isError && <p className="text-red-400">Couldn't load the question bank.</p>}
+      {questionsQuery.isLoading && <p className="text-muted">Loading…</p>}
+      {questionsQuery.isError && <p className="text-danger">Couldn't load the question bank.</p>}
 
       {questionsQuery.data && (
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-muted">
           {total === 0 ? "No questions match" : `Showing ${pageStart}–${pageEnd} of ${total} questions`}
           {activeTags.size > 0 && ` — matching any of: ${[...activeTags].join(", ")}`}
         </p>
@@ -115,14 +115,14 @@ export default function QuestionBankPage() {
 
       <div className={`flex flex-col gap-2 transition-opacity ${questionsQuery.isFetching ? "opacity-60" : ""}`}>
         {questionsQuery.data?.items.map((q) => (
-          <div key={q.id} className="rounded-xl border border-slate-800 bg-slate-900 px-4 py-3">
+          <div key={q.id} className="rounded-xl border border-border bg-surface px-4 py-3">
             <p className="mb-1">{q.text}</p>
             {q.tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {q.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="rounded-full bg-slate-800 px-2 py-0.5 text-xs capitalize text-slate-400"
+                    className="rounded-full bg-surface-alt px-2 py-0.5 text-xs capitalize text-muted"
                   >
                     {tag}
                   </span>
@@ -138,17 +138,17 @@ export default function QuestionBankPage() {
           <button
             onClick={() => setOffset((o) => Math.max(0, o - PAGE_SIZE))}
             disabled={!hasPrev || questionsQuery.isFetching}
-            className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium hover:bg-slate-700 disabled:opacity-40"
+            className="rounded-lg bg-surface-alt px-4 py-2 text-sm font-medium hover:bg-surface-alt-hover disabled:opacity-40"
           >
             ← Previous
           </button>
-          <span className="text-sm text-slate-400">
+          <span className="text-sm text-muted">
             Page {Math.floor(offset / PAGE_SIZE) + 1} of {Math.ceil(total / PAGE_SIZE)}
           </span>
           <button
             onClick={() => setOffset((o) => o + PAGE_SIZE)}
             disabled={!hasNext || questionsQuery.isFetching}
-            className="rounded-lg bg-slate-800 px-4 py-2 text-sm font-medium hover:bg-slate-700 disabled:opacity-40"
+            className="rounded-lg bg-surface-alt px-4 py-2 text-sm font-medium hover:bg-surface-alt-hover disabled:opacity-40"
           >
             Next →
           </button>

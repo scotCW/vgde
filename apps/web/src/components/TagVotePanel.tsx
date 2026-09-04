@@ -44,11 +44,11 @@ export default function TagVotePanel({ code, isHost, candidates, myVoteStatus, p
   }
 
   return (
-    <div className="rounded-2xl border-2 border-indigo-500 bg-indigo-950/30 p-5">
-      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-indigo-400">
+    <div className="rounded-2xl border-2 border-panel-accent-border bg-panel-accent p-5">
+      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-link">
         Group vote — categories to leave out
       </p>
-      <p className="mb-3 text-sm text-slate-400">
+      <p className="mb-3 text-sm text-muted">
         Pick anything you personally don't want in this game — if even one person excludes a category,
         it's out for everyone.
         {progress && ` ${progress.submitted} of ${progress.total} have voted.`}
@@ -64,8 +64,8 @@ export default function TagVotePanel({ code, isHost, candidates, myVoteStatus, p
               onClick={() => toggle(tag)}
               className={`rounded-full border px-3 py-1 text-sm capitalize transition ${
                 excluded
-                  ? "border-red-500 bg-red-950/60 text-red-300 line-through"
-                  : "border-slate-700 bg-slate-900 text-slate-200 hover:bg-slate-800"
+                  ? "border-danger-chip-border bg-danger-chip text-danger line-through"
+                  : "border-border-strong bg-surface text-text hover:bg-surface-alt"
               }`}
             >
               {tag}
@@ -77,19 +77,19 @@ export default function TagVotePanel({ code, isHost, candidates, myVoteStatus, p
       <button
         disabled={busy}
         onClick={() => void submit()}
-        className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium hover:bg-indigo-500 disabled:opacity-50"
+        className="mt-4 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
       >
         {myVoteStatus.voted ? "Update my picks" : "Submit my picks"}
       </button>
       {myVoteStatus.voted && (
-        <p className="mt-2 text-xs text-slate-500">Vote recorded — you can change it until everyone's in.</p>
+        <p className="mt-2 text-xs text-subtle">Vote recorded — you can change it until everyone's in.</p>
       )}
 
       {isHost && (
         <button
           disabled={busy}
           onClick={() => void closeEarly()}
-          className="mt-3 block text-sm text-slate-400 underline hover:text-slate-200"
+          className="mt-3 block text-sm text-muted underline hover:text-text"
         >
           Tally now with whoever's voted
         </button>

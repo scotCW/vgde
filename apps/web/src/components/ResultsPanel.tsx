@@ -42,40 +42,40 @@ export default function ResultsPanel({ code, results, players, revealMode, isHos
         <button
           onClick={() => void revealNext()}
           disabled={busy}
-          className="rounded-lg bg-indigo-600 px-4 py-2 font-medium hover:bg-indigo-500 disabled:opacity-50"
+          className="rounded-lg bg-indigo-600 px-4 py-2 font-medium text-white hover:bg-indigo-500 disabled:opacity-50"
         >
           Reveal next result
         </button>
       )}
       {revealMode === "ONE_AT_A_TIME_SYNCED" && !isHost && readyToRevealNext && (
-        <p className="text-sm text-slate-400">Waiting for the host to reveal the next result…</p>
+        <p className="text-sm text-muted">Waiting for the host to reveal the next result…</p>
       )}
 
       {revealMode === "ALL_AT_ONCE" && results.length > 0 && (
         <div className="flex items-center gap-2 text-sm">
-          <span className="text-slate-400">Sort:</span>
+          <span className="text-muted">Sort:</span>
           <button
             onClick={() => setSort("order")}
-            className={`rounded-full px-3 py-1 ${sort === "order" ? "bg-indigo-600" : "bg-slate-800"}`}
+            className={`rounded-full px-3 py-1 ${sort === "order" ? "bg-indigo-600 text-white" : "bg-surface-alt"}`}
           >
             Original order
           </button>
           <button
             onClick={() => setSort("alpha")}
-            className={`rounded-full px-3 py-1 ${sort === "alpha" ? "bg-indigo-600" : "bg-slate-800"}`}
+            className={`rounded-full px-3 py-1 ${sort === "alpha" ? "bg-indigo-600 text-white" : "bg-surface-alt"}`}
           >
             A–Z
           </button>
         </div>
       )}
 
-      {sorted.length === 0 && <p className="text-slate-400">No results revealed yet.</p>}
+      {sorted.length === 0 && <p className="text-muted">No results revealed yet.</p>}
 
       {sorted.map((r) => (
-        <div key={r.sessionQuestionId} className="rounded-2xl border border-slate-800 bg-slate-900 p-5">
+        <div key={r.sessionQuestionId} className="rounded-2xl border border-border bg-surface p-5">
           <p className="mb-2 text-lg font-medium">{r.text}</p>
-          <p className="mb-3 text-sm font-semibold text-indigo-400">🏆 {playerName(players, r.winnerPlayerId)}</p>
-          <div className="flex flex-wrap gap-3 text-sm text-slate-400">
+          <p className="mb-3 text-sm font-semibold text-link">🏆 {playerName(players, r.winnerPlayerId)}</p>
+          <div className="flex flex-wrap gap-3 text-sm text-muted">
             {Object.entries(r.tally).map(([playerId, count]) => (
               <span key={playerId}>
                 {playerName(players, playerId)}: {count}

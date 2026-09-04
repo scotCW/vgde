@@ -121,23 +121,23 @@ export default function ConfigPanel({
         : `first to ${config.targetCards ?? 6} cards, ${config.batchSize ?? 5} at a time`;
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900 p-6">
+    <div className="rounded-2xl border border-border bg-surface p-6">
       <h2 className="mb-4 font-semibold">Game settings</h2>
 
       {!isHost && (
-        <p className="mb-4 text-sm text-slate-400">Only the host can change these.</p>
+        <p className="mb-4 text-sm text-muted">Only the host can change these.</p>
       )}
       {voteOpen && (
-        <p className="mb-4 text-sm text-indigo-400">
+        <p className="mb-4 text-sm text-link">
           Settings are locked while the group votes {modeVoteOpen ? "on the mode" : "on categories"} below.
         </p>
       )}
 
       <fieldset disabled={!isHost || busy || voteOpen} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-slate-400">Mode</span>
+          <span className="text-sm text-muted">Mode</span>
           <select
-            className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            className="rounded-lg border border-border-strong bg-input px-3 py-2"
             value={config.mode}
             onChange={(e) => void update({ mode: e.target.value as GameConfig["mode"] })}
           >
@@ -151,7 +151,7 @@ export default function ConfigPanel({
           <button
             type="button"
             onClick={() => void delegateMode()}
-            className="self-start text-sm text-indigo-400 underline hover:text-indigo-300"
+            className="self-start text-sm text-link underline hover:text-accent-hover"
           >
             Let the group vote on the mode instead
           </button>
@@ -159,12 +159,12 @@ export default function ConfigPanel({
 
         {config.mode === "CLASSIC_COUNT" && (
           <label className="flex flex-col gap-1">
-            <span className="text-sm text-slate-400">Number of questions</span>
+            <span className="text-sm text-muted">Number of questions</span>
             <input
               type="number"
               min={1}
               max={500}
-              className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              className="rounded-lg border border-border-strong bg-input px-3 py-2"
               value={config.questionCount ?? 10}
               onChange={(e) => void update({ questionCount: Number(e.target.value) })}
             />
@@ -174,23 +174,23 @@ export default function ConfigPanel({
         {config.mode === "FIRST_TO_N_CARDS" && (
           <>
             <label className="flex flex-col gap-1">
-              <span className="text-sm text-slate-400">Cards needed to win</span>
+              <span className="text-sm text-muted">Cards needed to win</span>
               <input
                 type="number"
                 min={1}
                 max={50}
-                className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+                className="rounded-lg border border-border-strong bg-input px-3 py-2"
                 value={config.targetCards}
                 onChange={(e) => void update({ targetCards: Number(e.target.value) })}
               />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-sm text-slate-400">Questions per batch</span>
+              <span className="text-sm text-muted">Questions per batch</span>
               <input
                 type="number"
                 min={1}
                 max={50}
-                className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+                className="rounded-lg border border-border-strong bg-input px-3 py-2"
                 value={config.batchSize}
                 onChange={(e) => void update({ batchSize: Number(e.target.value) })}
               />
@@ -212,7 +212,7 @@ export default function ConfigPanel({
             </span>
           </label>
           {deckAbstainCount > 0 && (
-            <p className="text-xs text-amber-400">
+            <p className="text-xs text-warning">
               ⚠ With {playerCount} players, everyone gets {playerCount - 1} vote-cards for{" "}
               {playerCount} questions — every player will hit one automatic, unavoidable abstain
               near the end of the game no matter this setting.{" "}
@@ -224,9 +224,9 @@ export default function ConfigPanel({
         </div>
 
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-slate-400">Tie-break method</span>
+          <span className="text-sm text-muted">Tie-break method</span>
           <select
-            className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            className="rounded-lg border border-border-strong bg-input px-3 py-2"
             value={config.tieBreak.method}
             onChange={(e) =>
               void update({
@@ -248,9 +248,9 @@ export default function ConfigPanel({
 
         {config.tieBreak.method === "RUNOFF" && (
           <label className="flex flex-col gap-1">
-            <span className="text-sm text-slate-400">If the runoff ties again</span>
+            <span className="text-sm text-muted">If the runoff ties again</span>
             <select
-              className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+              className="rounded-lg border border-border-strong bg-input px-3 py-2"
               value={config.tieBreak.runoffFallback ?? "NO_AWARD"}
               onChange={(e) =>
                 void update({
@@ -265,9 +265,9 @@ export default function ConfigPanel({
         )}
 
         <label className="flex flex-col gap-1">
-          <span className="text-sm text-slate-400">Reveal style</span>
+          <span className="text-sm text-muted">Reveal style</span>
           <select
-            className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-2"
+            className="rounded-lg border border-border-strong bg-input px-3 py-2"
             value={config.revealMode}
             onChange={(e) => void update({ revealMode: e.target.value as GameConfig["revealMode"] })}
           >
@@ -278,7 +278,7 @@ export default function ConfigPanel({
 
         {tagsQuery.data && tagsQuery.data.tags.length > 0 && (
           <div className="flex flex-col gap-1">
-            <span className="text-sm text-slate-400">Question categories to leave out</span>
+            <span className="text-sm text-muted">Question categories to leave out</span>
             <div className="flex flex-wrap gap-2">
               {tagsQuery.data.tags.map((tag) => {
                 const excluded = config.excludedTags.includes(tag);
@@ -289,8 +289,8 @@ export default function ConfigPanel({
                     onClick={() => toggleTag(tag, !excluded)}
                     className={`rounded-full border px-3 py-1 text-sm capitalize transition ${
                       excluded
-                        ? "border-red-500 bg-red-950/60 text-red-300 line-through"
-                        : "border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700"
+                        ? "border-danger-chip-border bg-danger-chip text-danger line-through"
+                        : "border-border-strong bg-surface-alt text-text hover:bg-surface-alt-hover"
                     }`}
                   >
                     {tag}
@@ -298,14 +298,14 @@ export default function ConfigPanel({
                 );
               })}
             </div>
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-subtle">
               Click a category to leave it out of this game. Everything's included by default.
             </span>
             {isHost && !voteOpen && (
               <button
                 type="button"
                 onClick={() => void delegateTags()}
-                className="mt-1 self-start text-sm text-indigo-400 underline hover:text-indigo-300"
+                className="mt-1 self-start text-sm text-link underline hover:text-accent-hover"
               >
                 Let the group vote on categories instead
               </button>
@@ -314,9 +314,9 @@ export default function ConfigPanel({
         )}
       </fieldset>
 
-      <p className="mt-4 text-sm text-slate-400">{questionsForMode}</p>
-      {bankWarning && <p className="mt-2 text-sm text-amber-400">⚠ {bankWarning}</p>}
-      {error && <p className="mt-2 text-sm text-red-400">{error}</p>}
+      <p className="mt-4 text-sm text-muted">{questionsForMode}</p>
+      {bankWarning && <p className="mt-2 text-sm text-warning">⚠ {bankWarning}</p>}
+      {error && <p className="mt-2 text-sm text-danger">{error}</p>}
     </div>
   );
 }

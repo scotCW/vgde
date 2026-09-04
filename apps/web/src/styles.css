@@ -1,5 +1,62 @@
 @import "tailwindcss";
 
+/*
+ * Semantic color tokens instead of sprinkling `dark:` on every utility —
+ * a component just says `bg-surface`/`text-muted`/etc. and the actual
+ * color swaps automatically based on the `.dark` class on <html>. Light
+ * values live here in @theme (Tailwind turns `--color-x` into the `x`
+ * utility, e.g. `bg-x`/`text-x`/`border-x`); dark values override the
+ * same custom properties inside `.dark`, which the generated utilities
+ * pick up automatically since they just reference the variable.
+ */
+@theme {
+  --color-app: #f8fafc; /* slate-50 */
+  --color-surface: #ffffff;
+  --color-surface-alt: #f1f5f9; /* slate-100 — default chip/secondary bg */
+  --color-surface-alt-hover: #e2e8f0; /* slate-200 — hover of the above, or a resting emphasized-button bg */
+  --color-surface-strong: #cbd5e1; /* slate-300 — hover of an already-emphasized button */
+  --color-input: #ffffff;
+  --color-border: #e2e8f0; /* slate-200 */
+  --color-border-strong: #cbd5e1; /* slate-300 */
+  --color-text: #0f172a; /* slate-900 */
+  --color-muted: #475569; /* slate-600 */
+  --color-subtle: #94a3b8; /* slate-400 */
+  --color-accent-hover: #4338ca; /* indigo-700 */
+  --color-link: #4f46e5; /* indigo-600 */
+  --color-danger: #dc2626; /* red-600 */
+  --color-warning: #d97706; /* amber-600 */
+  --color-panel-accent: #eef2ff; /* indigo-50 */
+  --color-panel-accent-border: #a5b4fc; /* indigo-300 */
+  --color-panel-warning: #fffbeb; /* amber-50 */
+  --color-panel-warning-border: #fcd34d; /* amber-300 */
+  --color-danger-chip: #fef2f2; /* red-50 */
+  --color-danger-chip-border: #fca5a5; /* red-300 */
+}
+
+:root.dark {
+  --color-app: #020617; /* slate-950 */
+  --color-surface: #0f172a; /* slate-900 */
+  --color-surface-alt: #1e293b; /* slate-800 */
+  --color-surface-alt-hover: #334155; /* slate-700 */
+  --color-surface-strong: #475569; /* slate-600 */
+  --color-input: #020617; /* slate-950 */
+  --color-border: #1e293b; /* slate-800 */
+  --color-border-strong: #334155; /* slate-700 */
+  --color-text: #f1f5f9; /* slate-100 */
+  --color-muted: #94a3b8; /* slate-400 */
+  --color-subtle: #64748b; /* slate-500 */
+  --color-accent-hover: #6366f1; /* indigo-500 */
+  --color-link: #818cf8; /* indigo-400 */
+  --color-danger: #f87171; /* red-400 */
+  --color-warning: #fbbf24; /* amber-400 */
+  --color-panel-accent: rgba(99, 102, 241, 0.1);
+  --color-panel-accent-border: #6366f1; /* indigo-500 */
+  --color-panel-warning: rgba(245, 158, 11, 0.1);
+  --color-panel-warning-border: #f59e0b; /* amber-500 */
+  --color-danger-chip: rgba(248, 113, 113, 0.15);
+  --color-danger-chip-border: #f87171; /* red-400 */
+}
+
 body {
-  @apply bg-slate-950 text-slate-100 min-h-screen;
+  @apply bg-app text-text min-h-screen;
 }
