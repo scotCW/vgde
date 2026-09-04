@@ -10,3 +10,4 @@ apps/server/prisma/dev.db
 apps/server/generated/
 .turbo/
 *.tsbuildinfo
+.claude/
