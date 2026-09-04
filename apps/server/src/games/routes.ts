@@ -12,11 +12,14 @@ import {
   updateGameConfig,
 } from "./service.js";
 import {
+  CUSTOM_CARD_IMPORT_MAX,
   CUSTOM_CARD_TAGS_MAX,
   CUSTOM_CARD_TAG_LENGTH_MAX,
   CUSTOM_CARD_TEXT_MAX,
   createCustomCard,
   deleteCustomCard,
+  exportMyCustomCards,
+  importCustomCards,
   listMyCustomCards,
   updateCustomCard,
 } from "./customCards.js";
@@ -164,6 +167,33 @@ export default async function gameRoutes(app: FastifyInstance) {
     const { id } = request.params as { id: string };
     await deleteCustomCard(request.user!.id, id);
     return reply.code(204).send();
+  });
+
+  // A portable {version, cards} snapshot — download it, hand the file to
+  // someone else, they import it into their own account. No shared host
+  // needed just because one person happened to write the deck.
+  app.get("/questions/custom/export", async (request, reply) => {
+    const bundle = await exportMyCustomCards(request.user!.id);
+    return reply.send(bundle);
+  });
+
+  const ImportBodySchema = z.object({
+    cards: z
+      .array(
+        z.object({
+          text: z.string().trim().min(1).max(CUSTOM_CARD_TEXT_MAX),
+          tags: z.array(z.string().trim().max(CUSTOM_CARD_TAG_LENGTH_MAX)).max(CUSTOM_CARD_TAGS_MAX).default([]),
+        }),
+      )
+      .min(1)
+      .max(CUSTOM_CARD_IMPORT_MAX),
+  });
+
+  app.post("/questions/custom/import", async (request, reply) => {
+    const body = parseBody(reply, ImportBodySchema, request.body);
+    if (body === null) return;
+    const result = await importCustomCards(request.user!.id, body.cards);
+    return reply.send(result);
   });
 
   app.post("/sessions", async (request, reply) => {

@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { del, get, patch, post } from "../api.js";
-import type { CustomCardDto } from "../types.js";
+import type { CustomCardDto, CustomCardExportBundle, CustomCardImportResult } from "../types.js";
 
 function parseTags(raw: string): string[] {
   return raw
@@ -80,6 +80,94 @@ function CardForm({ initialText = "", initialTags = [], submitLabel, onSubmit, o
   );
 }
 
+function ImportExportPanel({ onImported }: { onImported: () => Promise<unknown> }) {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  async function exportCards() {
+    setBusy(true);
+    setError(null);
+    try {
+      const bundle = await get<CustomCardExportBundle>("/questions/custom/export");
+      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "vgde-custom-cards.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setError("Couldn't export your cards.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function importFile(file: File) {
+    setBusy(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const raw = await file.text();
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        throw new Error("That file isn't valid JSON.");
+      }
+      const cards = (parsed as CustomCardExportBundle | null)?.cards;
+      if (!Array.isArray(cards)) throw new Error("That doesn't look like a custom-cards export file.");
+
+      const result = await post<CustomCardImportResult>("/questions/custom/import", { cards });
+      setMessage(
+        result.skipped > 0
+          ? `Added ${result.imported} card${result.imported === 1 ? "" : "s"}, skipped ${result.skipped} you already had.`
+          : `Added ${result.imported} card${result.imported === 1 ? "" : "s"}.`,
+      );
+      await onImported();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Couldn't import that file.");
+    } finally {
+      setBusy(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  return (
+    <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-surface p-4">
+      <button
+        onClick={() => void exportCards()}
+        disabled={busy}
+        className="rounded-lg border border-border-strong px-3 py-1.5 text-sm hover:bg-surface-alt disabled:opacity-50"
+      >
+        Export my cards
+      </button>
+      <button
+        onClick={() => fileInputRef.current?.click()}
+        disabled={busy}
+        className="rounded-lg border border-border-strong px-3 py-1.5 text-sm hover:bg-surface-alt disabled:opacity-50"
+      >
+        Import from file
+      </button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="application/json,.json"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) void importFile(file);
+        }}
+      />
+      <span className="text-sm text-muted">Share a deck with someone else — no shared host needed.</span>
+      {message && <p className="w-full text-sm text-link">{message}</p>}
+      {error && <p className="w-full text-sm text-danger">{error}</p>}
+    </div>
+  );
+}
+
 export default function MyCardsPage() {
   const queryClient = useQueryClient();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -122,6 +210,8 @@ export default function MyCardsPage() {
           Back home
         </Link>
       </header>
+
+      <ImportExportPanel onImported={invalidate} />
 
       <div className="rounded-2xl border border-border bg-surface p-4">
         <h2 className="mb-3 font-semibold">Add a card</h2>

@@ -37,6 +37,16 @@ export interface CustomCardDto {
   createdAt: string;
 }
 
+export interface CustomCardExportBundle {
+  version: number;
+  cards: { text: string; tags: string[] }[];
+}
+
+export interface CustomCardImportResult {
+  imported: number;
+  skipped: number;
+}
+
 export interface QuestionDto {
   id: string;
   text: string;
