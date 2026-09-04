@@ -23,10 +23,10 @@
   "allowScripts": {
     "@prisma/client@5.22.0": true,
     "@prisma/engines@5.22.0": true,
-    "argon2@0.41.1": true,
     "prisma@5.22.0": true,
     "fsevents@2.3.3": true,
     "esbuild@0.28.2": true,
-    "esbuild@0.21.5": true
+    "esbuild@0.21.5": true,
+    "argon2@0.45.1": true
   }
 }
