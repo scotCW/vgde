@@ -43,7 +43,10 @@ export default function HomePage() {
     <div className="mx-auto flex min-h-screen max-w-md flex-col justify-center gap-8 px-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">VGDE</h1>
-        <button className="text-sm text-muted hover:text-text" onClick={() => void logout()}>
+        <button
+          className="rounded-lg border border-border-strong px-3 py-1.5 text-sm text-muted hover:bg-surface-alt hover:text-text"
+          onClick={() => void logout()}
+        >
           Sign out ({user?.displayNameDefault})
         </button>
       </div>
