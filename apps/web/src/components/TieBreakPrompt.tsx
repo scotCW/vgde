@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { post } from "../api.js";
 import type { PlayerDto } from "../types.js";
+import Identicon from "./Identicon.js";
 
 export interface ActiveTieBreak {
   sessionQuestionId: string;
@@ -45,8 +46,9 @@ export default function TieBreakPrompt({ code, tieBreak, players, onVoted }: Pro
               key={p.id}
               disabled={busy}
               onClick={() => void vote(p.id)}
-              className="rounded-full bg-amber-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-amber-500 disabled:opacity-50"
+              className="flex items-center gap-1.5 rounded-full bg-amber-600 py-1.5 pl-1.5 pr-3 text-sm font-medium text-white hover:bg-amber-500 disabled:opacity-50"
             >
+              <Identicon seed={p.id} size={18} />
               {p.displayName}
             </button>
           ))}

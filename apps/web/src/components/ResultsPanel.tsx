@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { post } from "../api.js";
 import type { PlayerDto, ResultDto } from "../types.js";
+import Identicon from "./Identicon.js";
 
 interface Props {
   code: string;
@@ -74,10 +75,14 @@ export default function ResultsPanel({ code, results, players, revealMode, isHos
       {sorted.map((r) => (
         <div key={r.sessionQuestionId} className="rounded-2xl border border-border bg-surface p-5">
           <p className="mb-2 text-lg font-medium">{r.text}</p>
-          <p className="mb-3 text-sm font-semibold text-link">🏆 {playerName(players, r.winnerPlayerId)}</p>
+          <p className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-link">
+            🏆 {r.winnerPlayerId && <Identicon seed={r.winnerPlayerId} size={16} />}
+            {playerName(players, r.winnerPlayerId)}
+          </p>
           <div className="flex flex-wrap gap-3 text-sm text-muted">
             {Object.entries(r.tally).map(([playerId, count]) => (
-              <span key={playerId}>
+              <span key={playerId} className="flex items-center gap-1">
+                <Identicon seed={playerId} size={14} />
                 {playerName(players, playerId)}: {count}
               </span>
             ))}

@@ -1,3 +1,4 @@
+import Identicon from "./Identicon.js";
 import type { PlayerDto } from "../types.js";
 
 export default function StandingsBar({ players }: { players: PlayerDto[] }) {
@@ -7,8 +8,9 @@ export default function StandingsBar({ players }: { players: PlayerDto[] }) {
       {sorted.map((p) => (
         <span
           key={p.id}
-          className={`rounded-full px-3 py-1 text-sm ${p.isMe ? "bg-panel-accent text-link" : "bg-surface-alt text-muted"}`}
+          className={`flex items-center gap-1.5 rounded-full py-1 pl-1.5 pr-3 text-sm ${p.isMe ? "bg-panel-accent text-link" : "bg-surface-alt text-muted"}`}
         >
+          <Identicon seed={p.id} size={18} />
           {p.displayName} · {p.cardsWon} 🃏
         </span>
       ))}

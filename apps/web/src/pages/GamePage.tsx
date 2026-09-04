@@ -13,6 +13,7 @@ import StandingsBar from "../components/StandingsBar.js";
 import TieBreakPrompt, { type ActiveTieBreak } from "../components/TieBreakPrompt.js";
 import ModeVotePanel from "../components/ModeVotePanel.js";
 import TagVotePanel from "../components/TagVotePanel.js";
+import Identicon from "../components/Identicon.js";
 
 const ALL_MODES = GameModeSchema.options;
 
@@ -168,7 +169,11 @@ export default function GamePage() {
             <p className="mb-2 text-sm text-muted">Players ({session.players.length})</p>
             <div className="flex flex-wrap gap-2">
               {session.players.map((p) => (
-                <span key={p.id} className="rounded-full bg-surface-alt px-3 py-1 text-sm">
+                <span
+                  key={p.id}
+                  className="flex items-center gap-1.5 rounded-full bg-surface-alt py-1 pl-1.5 pr-3 text-sm"
+                >
+                  <Identicon seed={p.id} size={18} />
                   {p.displayName}
                   {p.isConfigurator && " (host)"}
                 </span>

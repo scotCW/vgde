@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { GameConfig } from "@voting-game/shared";
 import { post } from "../api.js";
 import type { PlayerDto, VotingQuestionDto } from "../types.js";
+import Identicon from "./Identicon.js";
 
 interface Props {
   code: string;
@@ -83,7 +84,7 @@ export default function VotingScreen({
                     key={p.id}
                     disabled={disabled}
                     onClick={() => void castVote(q.sessionQuestionId, p.id)}
-                    className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
+                    className={`flex items-center gap-1.5 rounded-full py-1.5 pl-1.5 pr-3 text-sm font-medium transition ${
                       selected
                         ? "bg-indigo-600 text-white"
                         : disabled
@@ -92,6 +93,7 @@ export default function VotingScreen({
                     }`}
                     title={isDeck && !available && !selected ? "Already voted for this person" : undefined}
                   >
+                    <Identicon seed={p.id} size={18} />
                     {p.displayName}
                   </button>
                 );
