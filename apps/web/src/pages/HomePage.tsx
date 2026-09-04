@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { ApiError, get, post } from "../api.js";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ApiError, del, get, post } from "../api.js";
 import { useAuth } from "../auth/AuthContext.js";
 import type { MyGameDto } from "../types.js";
 
@@ -48,6 +48,9 @@ export default function HomePage() {
     }
   }
 
+  const queryClient = useQueryClient();
+  const [removingCode, setRemovingCode] = useState<string | null>(null);
+
   const myGamesQuery = useQuery({
     queryKey: ["my-games"],
     queryFn: () => get<MyGameDto[]>("/sessions/mine"),
@@ -56,6 +59,16 @@ export default function HomePage() {
     // fresh without a websocket just for the home page.
     refetchInterval: 15000,
   });
+
+  async function removeGame(code: string) {
+    setRemovingCode(code);
+    try {
+      await del(`/sessions/${code}/mine`);
+      await queryClient.invalidateQueries({ queryKey: ["my-games"] });
+    } finally {
+      setRemovingCode(null);
+    }
+  }
 
   async function confirmDeleteAccount() {
     setDeleteBusy(true);
@@ -151,20 +164,29 @@ export default function HomePage() {
           <h2 className="mb-3 font-semibold">My games</h2>
           <div className="flex flex-col gap-2">
             {myGamesQuery.data.map((g) => (
-              <Link
-                key={g.joinCode}
-                to={`/g/${g.joinCode}`}
-                className="flex items-center justify-between rounded-lg bg-surface-alt px-3 py-2 text-sm hover:bg-surface-alt-hover"
-              >
-                <span className="flex items-center gap-2">
-                  <span className="font-mono font-semibold tracking-widest">{g.joinCode}</span>
-                  {g.isHost && <span className="text-xs text-subtle">(host)</span>}
-                  <span className="text-xs text-subtle">{g.playerCount} players</span>
-                </span>
-                <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_CLASS[g.status]}`}>
-                  {STATUS_LABEL[g.status]}
-                </span>
-              </Link>
+              <div key={g.joinCode} className="flex items-center gap-2">
+                <Link
+                  to={`/g/${g.joinCode}`}
+                  className="flex flex-1 items-center justify-between rounded-lg bg-surface-alt px-3 py-2 text-sm hover:bg-surface-alt-hover"
+                >
+                  <span className="flex items-center gap-2">
+                    <span className="font-mono font-semibold tracking-widest">{g.joinCode}</span>
+                    {g.isHost && <span className="text-xs text-subtle">(host)</span>}
+                    <span className="text-xs text-subtle">{g.playerCount} players</span>
+                  </span>
+                  <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_CLASS[g.status]}`}>
+                    {STATUS_LABEL[g.status]}
+                  </span>
+                </Link>
+                <button
+                  onClick={() => void removeGame(g.joinCode)}
+                  disabled={removingCode === g.joinCode}
+                  title="Remove from my games"
+                  className="rounded-lg px-2 py-2 text-subtle hover:bg-danger-chip hover:text-danger disabled:opacity-50"
+                >
+                  ✕
+                </button>
+              </div>
             ))}
           </div>
         </div>

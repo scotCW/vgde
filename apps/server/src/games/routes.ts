@@ -6,6 +6,7 @@ import { requireAuth } from "../auth/plugin.js";
 import { GameError } from "./errors.js";
 import {
   createGameSession,
+  hideGameFromMyList,
   joinGameSession,
   listMyGames,
   questionEligibilityWhere,
@@ -208,6 +209,14 @@ export default async function gameRoutes(app: FastifyInstance) {
   app.get("/sessions/mine", async (request, reply) => {
     const games = await listMyGames(request.user!.id);
     return reply.send(games);
+  });
+
+  // Removes one game from the requester's own "My games" list — a
+  // personal view preference, not a real delete (see hideGameFromMyList).
+  app.delete("/sessions/:code/mine", async (request, reply) => {
+    const { code } = request.params as { code: string };
+    await hideGameFromMyList(code.toUpperCase(), request.user!.id);
+    return reply.code(204).send();
   });
 
   app.post("/sessions/:code/join", async (request, reply) => {

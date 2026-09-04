@@ -36,7 +36,7 @@ const MY_GAMES_LIMIT = 50;
  */
 export async function listMyGames(userId: string) {
   const players = await prisma.player.findMany({
-    where: { userId },
+    where: { userId, hiddenFromMyGames: false },
     include: { gameSession: { include: { _count: { select: { players: true } } } } },
     orderBy: { gameSession: { createdAt: "desc" } },
     take: MY_GAMES_LIMIT,
@@ -48,6 +48,22 @@ export async function listMyGames(userId: string) {
     playerCount: p.gameSession._count.players,
     createdAt: p.gameSession.createdAt,
   }));
+}
+
+/**
+ * Removes one game from this user's own "My games" list. Purely a view
+ * preference on their Player row — the game itself, and every other
+ * player's access to it, are untouched.
+ */
+export async function hideGameFromMyList(joinCode: string, userId: string) {
+  const session = await prisma.gameSession.findUnique({ where: { joinCode } });
+  if (!session) throw new GameError("SESSION_NOT_FOUND", "Session not found", 404);
+  const player = await prisma.player.findUnique({
+    where: { gameSessionId_userId: { gameSessionId: session.id, userId } },
+  });
+  if (!player) throw new GameError("NOT_A_PLAYER", "You are not a player in this session", 403);
+
+  await prisma.player.update({ where: { id: player.id }, data: { hiddenFromMyGames: true } });
 }
 
 export async function createGameSession(hostUserId: string, hostDisplayName: string) {

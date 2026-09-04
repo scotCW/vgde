@@ -140,6 +140,11 @@ model Player {
   isConfigurator Boolean    @default(false)
   cardsWon      Int         @default(0)
   joinedAt      DateTime    @default(now())
+  // Removed from *this player's own* "My games" list — purely a personal
+  // view preference. The game itself, and everyone else's Player row in
+  // it, are completely untouched; this never affects who's actually in
+  // the game or whether it keeps running.
+  hiddenFromMyGames Boolean @default(false)
 
   gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
   user          User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
