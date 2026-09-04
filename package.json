@@ -1,0 +1,32 @@
+{
+  "name": "vgde",
+  "private": true,
+  "version": "0.1.0",
+  "license": "Unlicense",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev:server": "npm run dev --workspace=@voting-game/server",
+    "dev:web": "npm run dev --workspace=@voting-game/web",
+    "build": "npm run build --workspace=@voting-game/shared && npm run build --workspace=@voting-game/server && npm run build --workspace=@voting-game/web",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "prisma:generate": "npm run prisma:generate --workspace=@voting-game/server",
+    "prisma:migrate": "npm run prisma:migrate --workspace=@voting-game/server",
+    "seed": "npm run seed --workspace=@voting-game/server"
+  },
+  "allowScripts": {
+    "@prisma/client@5.22.0": true,
+    "@prisma/engines@5.22.0": true,
+    "argon2@0.41.1": true,
+    "prisma@5.22.0": true,
+    "fsevents@2.3.3": true,
+    "esbuild@0.28.2": true,
+    "esbuild@0.21.5": true
+  }
+}

@@ -1,0 +1,245 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                String         @id @default(uuid())
+  email             String?        @unique
+  passwordHash      String?
+  displayNameDefault String
+  createdAt         DateTime       @default(now())
+
+  oidcIdentities    OidcIdentity[]
+  authSessions      AuthSession[]
+  hostedGames       GameSession[]  @relation("HostedGames")
+  players           Player[]
+
+  @@map("users")
+}
+
+model OidcIdentity {
+  id        String   @id @default(uuid())
+  userId    String
+  issuer    String
+  subject   String
+  linkedAt  DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([issuer, subject])
+  @@map("oidc_identities")
+}
+
+// Server-side session store backing the httpOnly cookie, so sessions are
+// individually revocable (unlike a stateless JWT).
+model AuthSession {
+  id        String   @id @default(uuid())
+  userId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("auth_sessions")
+}
+
+// Granular per-question progress (voting/tie-break/tallied/revealed) lives
+// on SessionQuestionStatus; this only tracks the session's overall phase.
+enum GameStatus {
+  LOBBY
+  VOTING
+  COMPLETED
+}
+
+model GameSession {
+  id          String            @id @default(uuid())
+  joinCode    String            @unique
+  hostUserId  String
+  status      GameStatus        @default(LOBBY)
+  // Validated against the GameConfig zod schema in @voting-game/shared
+  // before every write; jsonb is just the storage shape.
+  config      Json
+  // True while the host has delegated the mode decision to a player vote
+  // (see ModeVote) — config edits and starting the game are blocked until
+  // it resolves.
+  modeVoteOpen Boolean          @default(false)
+  // Same, but for delegating which question-bank tags to exclude (see
+  // TagVote). Mutually exclusive with modeVoteOpen — only one vote runs at
+  // a time.
+  tagVoteOpen  Boolean          @default(false)
+  createdAt   DateTime          @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  host        User              @relation("HostedGames", fields: [hostUserId], references: [id])
+  players     Player[]
+  questions   SessionQuestion[]
+  voteCards   VoteCard[]
+  modeVotes   ModeVote[]
+  tagVotes    TagVote[]
+
+  @@map("game_sessions")
+}
+
+// A lobby-phase vote letting the host delegate the CLASSIC_COUNT /
+// DECK_UNIQUE / FIRST_TO_N_CARDS decision to the group instead of picking
+// it themselves. One row per player per open vote; cleared and re-created
+// if the host reopens the vote later.
+model ModeVote {
+  id            String      @id @default(uuid())
+  gameSessionId String
+  voterPlayerId String
+  // GameMode value from @voting-game/shared, or null for an abstain.
+  mode          String?
+  createdAt     DateTime    @default(now())
+
+  gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
+
+  @@unique([gameSessionId, voterPlayerId])
+  @@map("mode_votes")
+}
+
+// A lobby-phase vote letting the host delegate which question-bank tags to
+// exclude. Each player submits the set of tags *they* want left out;
+// resolution unions every submission — a tag is excluded from the session
+// if even one player asked for it, since this is a content-comfort filter,
+// not a majority-rules choice.
+model TagVote {
+  id            String      @id @default(uuid())
+  gameSessionId String
+  voterPlayerId String
+  excludedTags  String[]
+  createdAt     DateTime    @default(now())
+
+  gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
+
+  @@unique([gameSessionId, voterPlayerId])
+  @@map("tag_votes")
+}
+
+model Player {
+  id            String      @id @default(uuid())
+  gameSessionId String
+  userId        String
+  displayName   String
+  isConfigurator Boolean    @default(false)
+  cardsWon      Int         @default(0)
+  joinedAt      DateTime    @default(now())
+
+  gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id])
+
+  votesCast     Vote[]      @relation("VoterVotes")
+
+  @@unique([gameSessionId, userId])
+  @@map("players")
+}
+
+model QuestionBank {
+  id    String @id @default(uuid())
+  text  String
+  tags  String[]
+
+  sessionQuestions SessionQuestion[]
+
+  @@map("question_bank")
+}
+
+enum SessionQuestionStatus {
+  PENDING
+  VOTING
+  TIE_BREAK
+  // Resolved but not yet shown to players — only used by
+  // ONE_AT_A_TIME_SYNCED, which reveals questions one at a time on the
+  // host's cue instead of as soon as they're tallied.
+  TALLIED
+  REVEALED
+}
+
+model SessionQuestion {
+  id            String                 @id @default(uuid())
+  gameSessionId String
+  questionId    String
+  orderIndex    Int
+  status        SessionQuestionStatus  @default(PENDING)
+  revealedAt    DateTime?
+  winnerPlayerId String?
+
+  gameSession   GameSession            @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
+  question      QuestionBank           @relation(fields: [questionId], references: [id])
+  votes         Vote[]
+  tieBreakRounds TieBreakRound[]
+
+  @@unique([gameSessionId, orderIndex])
+  @@map("session_questions")
+}
+
+// Deck Mode only: one row per ordered (owner, other player) pair, generated
+// at game start. Consuming a card is what enforces "vote for each person at
+// most once."
+model VoteCard {
+  id                    String   @id @default(uuid())
+  gameSessionId         String
+  ownerPlayerId         String
+  targetPlayerId        String
+  usedAt                DateTime?
+  usedOnSessionQuestionId String?
+
+  gameSession           GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
+
+  @@unique([gameSessionId, ownerPlayerId, targetPlayerId])
+  @@map("vote_cards")
+}
+
+model Vote {
+  id                String          @id @default(uuid())
+  sessionQuestionId String
+  voterPlayerId     String
+  // null = abstain (voluntary or auto). Never exposed to other players.
+  targetPlayerId    String?
+  isAutoAbstain     Boolean         @default(false)
+  createdAt         DateTime        @default(now())
+
+  sessionQuestion   SessionQuestion @relation(fields: [sessionQuestionId], references: [id], onDelete: Cascade)
+  voter             Player          @relation("VoterVotes", fields: [voterPlayerId], references: [id])
+
+  @@unique([sessionQuestionId, voterPlayerId])
+  @@map("votes")
+}
+
+model TieBreakRound {
+  id                String          @id @default(uuid())
+  sessionQuestionId String
+  roundIndex        Int
+  candidatePlayerIds String[]
+  resolved          Boolean         @default(false)
+  winnerPlayerId    String?
+  createdAt         DateTime        @default(now())
+
+  sessionQuestion   SessionQuestion @relation(fields: [sessionQuestionId], references: [id], onDelete: Cascade)
+  votes             TieBreakVote[]
+
+  @@unique([sessionQuestionId, roundIndex])
+  @@map("tie_break_rounds")
+}
+
+// Runoff votes are tracked separately from Vote and never consume a Deck
+// Mode VoteCard — a runoff is a tie-break formality restricted to the tied
+// candidates, not a new permanent choice.
+model TieBreakVote {
+  id              String        @id @default(uuid())
+  tieBreakRoundId String
+  voterPlayerId   String
+  targetPlayerId  String?
+  createdAt       DateTime      @default(now())
+
+  tieBreakRound   TieBreakRound @relation(fields: [tieBreakRoundId], references: [id], onDelete: Cascade)
+
+  @@unique([tieBreakRoundId, voterPlayerId])
+  @@map("tie_break_votes")
+}
