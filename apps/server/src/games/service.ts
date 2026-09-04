@@ -53,7 +53,11 @@ export async function listMyGames(userId: string) {
 /**
  * Removes one game from this user's own "My games" list. Purely a view
  * preference on their Player row — the game itself, and every other
- * player's access to it, are untouched.
+ * player's access to it, are untouched, nobody gets kicked. The one
+ * exception: if the *host* does this on a game still in LOBBY, the other
+ * players (if any are actually there) get a heads-up over the socket that
+ * the host has removed it on their side — useful context, since the host
+ * disappearing on an unstarted lobby usually means it isn't going anywhere.
  */
 export async function hideGameFromMyList(joinCode: string, userId: string) {
   const session = await prisma.gameSession.findUnique({ where: { joinCode } });
@@ -64,6 +68,15 @@ export async function hideGameFromMyList(joinCode: string, userId: string) {
   if (!player) throw new GameError("NOT_A_PLAYER", "You are not a player in this session", 403);
 
   await prisma.player.update({ where: { id: player.id }, data: { hiddenFromMyGames: true } });
+
+  if (session.hostUserId === userId && session.status === "LOBBY") {
+    const othersCount = await prisma.player.count({
+      where: { gameSessionId: session.id, id: { not: player.id } },
+    });
+    if (othersCount > 0) {
+      rooms.broadcast(session.id, "host:removed_game", {});
+    }
+  }
 }
 
 export async function createGameSession(hostUserId: string, hostDisplayName: string) {

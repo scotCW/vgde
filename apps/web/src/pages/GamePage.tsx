@@ -27,6 +27,7 @@ export default function GamePage() {
   const [activeTieBreak, setActiveTieBreak] = useState<ActiveTieBreak | null>(null);
   const [readyToRevealNext, setReadyToRevealNext] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
+  const [hostRemovedGame, setHostRemovedGame] = useState(false);
 
   const sessionQuery = useQuery({
     queryKey: ["session", code],
@@ -114,6 +115,9 @@ export default function GamePage() {
             setProgress(null);
             invalidateAll();
             break;
+          case "host:removed_game":
+            setHostRemovedGame(true);
+            break;
           default:
             invalidateAll();
         }
@@ -162,6 +166,13 @@ export default function GamePage() {
       </header>
 
       <StandingsBar players={session.players} />
+
+      {hostRemovedGame && (
+        <div className="rounded-2xl border-2 border-panel-warning-border bg-panel-warning p-4 text-sm">
+          The host has removed this game from their list. It's still here and still joinable, but
+          they may not be coming back to start it.
+        </div>
+      )}
 
       {session.status === "LOBBY" && (
         <>
