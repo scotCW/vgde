@@ -12,6 +12,10 @@ on:
 permissions:
   contents: read
   security-events: write
+  # Required specifically for private repos — the Action looks up its own
+  # workflow-run context (this is what "Resource not accessible by
+  # integration" on GET .../actions/runs/{id} means without it).
+  actions: read
 
 jobs:
   analyze:
