@@ -10,6 +10,7 @@ export default defineConfig({
       "/auth": "http://localhost:3000",
       "/me": "http://localhost:3000",
       "/sessions": "http://localhost:3000",
+      "/questions": "http://localhost:3000",
       "/ws": { target: "ws://localhost:3000", ws: true },
     },
   },
