@@ -1,6 +1,11 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { filterQuestionsByTags, questionCountForMode, type GameConfig } from "@voting-game/shared";
+import {
+  filterQuestionsByTags,
+  guaranteedForcedAbstainCount,
+  questionCountForMode,
+  type GameConfig,
+} from "@voting-game/shared";
 import { get, patch, post } from "../api.js";
 import type { QuestionBankSummaryItem } from "../types.js";
 
@@ -50,6 +55,17 @@ export default function ConfigPanel({
       ? `Only ${eligible} questions match these filters, but each batch needs ${required} — batches will run smaller than configured, and the game may end early if the bank runs out.`
       : `Only ${eligible} questions match these filters, but this mode needs ${required} to start. Exclude fewer categories, lower the question count, or add more players.`;
   }, [bankSummaryQuery.data, config, playerCount]);
+
+  // Deck Mode always deals playerCount - 1 cards but draws playerCount
+  // questions — every player is guaranteed to run out one question early,
+  // regardless of settings or how many people are playing. Forced abstain
+  // is always allowed when it happens (nothing breaks), but a host who
+  // disables voluntary abstaining might otherwise expect zero abstentions
+  // — that's not achievable here, so say so explicitly.
+  const deckAbstainCount =
+    config.mode === "DECK_UNIQUE" && playerCount >= 2
+      ? guaranteedForcedAbstainCount(playerCount, playerCount - 1)
+      : 0;
 
   async function update(partial: Partial<GameConfig>) {
     setBusy(true);
@@ -182,18 +198,30 @@ export default function ConfigPanel({
           </>
         )}
 
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={config.allowVoluntaryAbstain}
-            disabled={!isHost || busy || config.mode !== "DECK_UNIQUE"}
-            onChange={(e) => void update({ allowVoluntaryAbstain: e.target.checked })}
-          />
-          <span className="text-sm">
-            Allow players to abstain by choice
-            {config.mode !== "DECK_UNIQUE" && " (always on outside Deck Mode)"}
-          </span>
-        </label>
+        <div className="flex flex-col gap-1">
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={config.allowVoluntaryAbstain}
+              disabled={!isHost || busy || config.mode !== "DECK_UNIQUE"}
+              onChange={(e) => void update({ allowVoluntaryAbstain: e.target.checked })}
+            />
+            <span className="text-sm">
+              Allow players to abstain by choice
+              {config.mode !== "DECK_UNIQUE" && " (always on outside Deck Mode)"}
+            </span>
+          </label>
+          {deckAbstainCount > 0 && (
+            <p className="text-xs text-amber-400">
+              ⚠ With {playerCount} players, everyone gets {playerCount - 1} vote-cards for{" "}
+              {playerCount} questions — every player will hit one automatic, unavoidable abstain
+              near the end of the game no matter this setting.{" "}
+              {config.allowVoluntaryAbstain
+                ? "This only controls abstaining early, while cards remain."
+                : "Turning this off won't get you to zero abstentions — that last one can't be prevented."}
+            </p>
+          )}
+        </div>
 
         <label className="flex flex-col gap-1">
           <span className="text-sm text-slate-400">Tie-break method</span>

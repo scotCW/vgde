@@ -16,6 +16,26 @@ export function generateDeck(playerIds: string[]): VoteCardRef[] {
   return deck;
 }
 
+/**
+ * How many of a player's questions are guaranteed to have no valid
+ * target left, given a deck of `deckSize` cards and `questionCount`
+ * questions — i.e. questions beyond what the deck can possibly cover.
+ *
+ * In Deck Mode specifically, `deckSize` is always `playerCount - 1` and
+ * `questionCount` is always `playerCount` (see `questionCountForMode`),
+ * so this is always exactly 1 for every player, every game, regardless
+ * of how many people are playing — it's not a rare edge case that shows
+ * up only with small groups, it's a structural property of the mode
+ * itself. That forced abstain is always allowed (see `voteValidation.ts`)
+ * so nothing breaks, but a host who disables voluntary abstaining
+ * expecting *zero* abstentions needs to know this can't be achieved —
+ * this function exists so that can be surfaced explicitly instead of
+ * discovered mid-game.
+ */
+export function guaranteedForcedAbstainCount(questionCount: number, deckSize: number): number {
+  return Math.max(0, questionCount - deckSize);
+}
+
 export function remainingTargets(deck: VoteCardRef[], ownerPlayerId: string): string[] {
   return deck
     .filter((c) => c.ownerPlayerId === ownerPlayerId && c.usedAt === null)
