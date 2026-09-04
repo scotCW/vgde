@@ -2,7 +2,7 @@ import * as argon2 from "argon2";
 
 // argon2id: resistant to both GPU-cracking and side-channel attacks, the
 // currently recommended variant for password storage.
-const HASH_OPTIONS: argon2.Options = {
+const HASH_OPTIONS: argon2.HashOptions = {
   type: argon2.argon2id,
   memoryCost: 19456, // ~19 MiB, OWASP-recommended minimum for argon2id
   timeCost: 2,
