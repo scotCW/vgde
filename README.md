@@ -153,6 +153,21 @@ easiest option — automatic TLS with a two-line Caddyfile) in front of it
 for HTTPS; set `COOKIE_SECURE=true` (the default) once you have TLS, and
 set `ALLOWED_ORIGINS` to your real domain.
 
+### Deployment guides by auth mode
+
+The above uses this repo's own `docker-compose.yml` + `.env`. If you'd
+rather start from a complete, self-contained compose file for the
+specific auth setup you want (real values inlined, nothing to
+cross-reference), see the [wiki](https://github.com/scotCW/vgde/wiki):
+
+- [Password + OIDC](https://github.com/scotCW/vgde/wiki/Deploy-Password-and-OIDC)
+  — both login paths active
+- [OIDC only](https://github.com/scotCW/vgde/wiki/Deploy-OIDC-only) —
+  single sign-on is the only way in, `/auth/register` and `/auth/login`
+  don't exist
+- [Password only](https://github.com/scotCW/vgde/wiki/Deploy-Password-only)
+  — no external identity provider at all, the simplest option
+
 ### Configuring without a `.env` file
 
 `docker-compose.yml` doesn't actually require `.env` — every value there is
