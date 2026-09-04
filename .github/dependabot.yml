@@ -13,6 +13,14 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    ignore:
+      # Pinned to exactly 3.23.8, deliberately: 3.25.x+ ships zod 4's
+      # internals under a v3-compat shim with a different top-level export
+      # shape, which caused two separate zod module instances to load in
+      # this repo and broke `instanceof ZodError` checks (see app.ts and
+      # routes.ts's parseBody). A major-version bump here needs an actual
+      # migration pass, not an automated PR.
+      - dependency-name: "zod"
     commit-message:
       prefix: "deps"
 
