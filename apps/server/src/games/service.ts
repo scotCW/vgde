@@ -26,6 +26,30 @@ export function questionEligibilityWhere(hostUserId: string) {
   return { OR: [{ createdByUserId: null }, { createdByUserId: hostUserId }] };
 }
 
+const MY_GAMES_LIMIT = 50;
+
+/**
+ * Every game a user is (or was) a player in, most recently created first —
+ * lets someone get back into a game without needing to remember its join
+ * code, whether it's still going (to check on slow players) or long since
+ * finished (to see the results again).
+ */
+export async function listMyGames(userId: string) {
+  const players = await prisma.player.findMany({
+    where: { userId },
+    include: { gameSession: { include: { _count: { select: { players: true } } } } },
+    orderBy: { gameSession: { createdAt: "desc" } },
+    take: MY_GAMES_LIMIT,
+  });
+  return players.map((p) => ({
+    joinCode: p.gameSession.joinCode,
+    status: p.gameSession.status,
+    isHost: p.gameSession.hostUserId === userId,
+    playerCount: p.gameSession._count.players,
+    createdAt: p.gameSession.createdAt,
+  }));
+}
+
 export async function createGameSession(hostUserId: string, hostDisplayName: string) {
   let joinCode = generateJoinCode();
   // Extremely unlikely to collide, but retry a few times just in case.

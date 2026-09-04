@@ -1,7 +1,21 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ApiError, post } from "../api.js";
+import { useQuery } from "@tanstack/react-query";
+import { ApiError, get, post } from "../api.js";
 import { useAuth } from "../auth/AuthContext.js";
+import type { MyGameDto } from "../types.js";
+
+const STATUS_LABEL: Record<MyGameDto["status"], string> = {
+  LOBBY: "Lobby",
+  VOTING: "In progress",
+  COMPLETED: "Completed",
+};
+
+const STATUS_CLASS: Record<MyGameDto["status"], string> = {
+  LOBBY: "bg-surface-alt text-muted",
+  VOTING: "bg-panel-accent text-link",
+  COMPLETED: "bg-emerald-700 text-white",
+};
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -12,6 +26,15 @@ export default function HomePage() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const myGamesQuery = useQuery({
+    queryKey: ["my-games"],
+    queryFn: () => get<MyGameDto[]>("/sessions/mine"),
+    // Games in progress can change while you're looking at something else
+    // (this list, an in-progress game elsewhere) — keep it reasonably
+    // fresh without a websocket just for the home page.
+    refetchInterval: 15000,
+  });
 
   async function confirmDeleteAccount() {
     setDeleteBusy(true);
@@ -101,6 +124,30 @@ export default function HomePage() {
       </div>
 
       {error && <p className="text-center text-sm text-danger">{error}</p>}
+
+      {myGamesQuery.data && myGamesQuery.data.length > 0 && (
+        <div className="rounded-2xl border border-border bg-surface p-6">
+          <h2 className="mb-3 font-semibold">My games</h2>
+          <div className="flex flex-col gap-2">
+            {myGamesQuery.data.map((g) => (
+              <Link
+                key={g.joinCode}
+                to={`/g/${g.joinCode}`}
+                className="flex items-center justify-between rounded-lg bg-surface-alt px-3 py-2 text-sm hover:bg-surface-alt-hover"
+              >
+                <span className="flex items-center gap-2">
+                  <span className="font-mono font-semibold tracking-widest">{g.joinCode}</span>
+                  {g.isHost && <span className="text-xs text-subtle">(host)</span>}
+                  <span className="text-xs text-subtle">{g.playerCount} players</span>
+                </span>
+                <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_CLASS[g.status]}`}>
+                  {STATUS_LABEL[g.status]}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col items-center gap-1 text-sm">
         <Link to="/question-bank" className="text-link underline hover:text-accent-hover">

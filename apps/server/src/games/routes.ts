@@ -7,6 +7,7 @@ import { GameError } from "./errors.js";
 import {
   createGameSession,
   joinGameSession,
+  listMyGames,
   questionEligibilityWhere,
   startGameSession,
   updateGameConfig,
@@ -199,6 +200,14 @@ export default async function gameRoutes(app: FastifyInstance) {
   app.post("/sessions", async (request, reply) => {
     const session = await createGameSession(request.user!.id, request.user!.displayNameDefault);
     return reply.code(201).send({ joinCode: session.joinCode, id: session.id });
+  });
+
+  // Every game the requester is a player in — lets them get back into an
+  // in-progress game to check on slow players, or revisit a finished one's
+  // results, without needing to remember its join code.
+  app.get("/sessions/mine", async (request, reply) => {
+    const games = await listMyGames(request.user!.id);
+    return reply.send(games);
   });
 
   app.post("/sessions/:code/join", async (request, reply) => {

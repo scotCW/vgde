@@ -30,6 +30,14 @@ export interface QuestionBankSummaryItem {
   tags: string[];
 }
 
+export interface MyGameDto {
+  joinCode: string;
+  status: "LOBBY" | "VOTING" | "COMPLETED";
+  isHost: boolean;
+  playerCount: number;
+  createdAt: string;
+}
+
 export interface CustomCardDto {
   id: string;
   text: string;
