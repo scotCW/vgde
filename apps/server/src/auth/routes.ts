@@ -6,6 +6,7 @@ import { oidcEnabled, passwordLoginEnabled } from "../env.js";
 import { hashPassword, verifyPassword } from "./password.js";
 import { createAuthSession, destroyAuthSession } from "./session.js";
 import { handleOidcCallback, startOidcLogin } from "./oidc.js";
+import { deleteAccount } from "./accountDeletion.js";
 
 const RegisterSchema = z.object({
   email: z.string().email(),
@@ -92,6 +93,12 @@ export default async function authRoutes(app: FastifyInstance) {
   app.get("/me", async (request, reply) => {
     if (!request.user) return reply.code(401).send({ error: "UNAUTHENTICATED" });
     return reply.send(request.user);
+  });
+
+  app.delete("/me", async (request, reply) => {
+    if (!request.user) return reply.code(401).send({ error: "UNAUTHENTICATED" });
+    await deleteAccount(request, reply, request.user.id);
+    return reply.code(204).send();
   });
 
   if (oidcEnabled(env)) {

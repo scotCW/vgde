@@ -40,4 +40,6 @@ export const post = <T>(path: string, data?: unknown) =>
 export const patch = <T>(path: string, data?: unknown) =>
   api<T>(path, { method: "PATCH", body: data !== undefined ? JSON.stringify(data) : undefined });
 
+export const del = <T>(path: string) => api<T>(path, { method: "DELETE" });
+
 export const get = <T>(path: string) => api<T>(path);

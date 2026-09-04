@@ -11,6 +11,7 @@ import {
 import { prisma } from "../db.js";
 import { GameError } from "./errors.js";
 import { rooms } from "./rooms.js";
+import { questionEligibilityWhere } from "./service.js";
 
 /**
  * Called after every vote is recorded. If every currently-open question in
@@ -66,7 +67,6 @@ export async function finalizeQuestion(
   if (outcome.needsRunoff) {
     const question = await prisma.sessionQuestion.findUniqueOrThrow({
       where: { id: sessionQuestionId },
-      include: { question: true },
     });
     const tieBreakRoundId = randomUUID();
     await prisma.$transaction([
@@ -86,7 +86,7 @@ export async function finalizeQuestion(
     rooms.broadcast(sessionId, "tiebreak:started", {
       sessionQuestionId,
       tieBreakRoundId,
-      text: question.question.text,
+      text: question.text,
       candidatePlayerIds: outcome.candidates,
     });
     return;
@@ -128,7 +128,7 @@ export async function applyResolvedQuestion(
 async function broadcastReveal(sessionQuestionId: string, sessionId: string) {
   const sq = await prisma.sessionQuestion.findUnique({
     where: { id: sessionQuestionId },
-    include: { question: true, votes: true },
+    include: { votes: true },
   });
   if (!sq) return;
 
@@ -141,7 +141,7 @@ async function broadcastReveal(sessionQuestionId: string, sessionId: string) {
 
   rooms.broadcast(sessionId, "question:revealed", {
     sessionQuestionId,
-    text: sq.question.text,
+    text: sq.text,
     orderIndex: sq.orderIndex,
     tally: Object.fromEntries(counts),
     winnerPlayerId: sq.winnerPlayerId,
@@ -215,10 +215,18 @@ export async function maybeAdvanceBatch(sessionId: string) {
       where: { gameSessionId: sessionId },
       select: { questionId: true },
     })
-  ).map((q) => q.questionId);
+  )
+    .map((q) => q.questionId)
+    .filter((id): id is string => id !== null);
 
+  // hostUserId only ever goes null on a COMPLETED session (account
+  // deletion is blocked while hosting a non-completed one) — a batch is
+  // only ever advanced mid-game, so it's still a real user here.
+  const eligibility = session.hostUserId
+    ? questionEligibilityWhere(session.hostUserId)
+    : { createdByUserId: null };
   const remainingBank = filterQuestionsByTags(
-    await prisma.questionBank.findMany({ where: { id: { notIn: usedQuestionIds } } }),
+    await prisma.questionBank.findMany({ where: { id: { notIn: usedQuestionIds }, ...eligibility } }),
     config.excludedTags,
   );
   const batchSize = Math.min(config.batchSize ?? 5, remainingBank.length);
@@ -242,6 +250,7 @@ export async function maybeAdvanceBatch(sessionId: string) {
       id: randomUUID(),
       gameSessionId: sessionId,
       questionId: q.id,
+      text: q.text,
       orderIndex: startIndex + i,
       status: "VOTING",
     })),

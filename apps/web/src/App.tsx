@@ -4,6 +4,7 @@ import LoginPage from "./pages/LoginPage.js";
 import HomePage from "./pages/HomePage.js";
 import GamePage from "./pages/GamePage.js";
 import QuestionBankPage from "./pages/QuestionBankPage.js";
+import MyCardsPage from "./pages/MyCardsPage.js";
 import ThemeToggle from "./components/ThemeToggle.js";
 
 export default function App() {
@@ -38,6 +39,7 @@ export default function App() {
             and a direct/full-page load of a client route with the same path
             hits the real API route before ever reaching the SPA shell. */}
         <Route path="/question-bank" element={<QuestionBankPage />} />
+        <Route path="/my-cards" element={<MyCardsPage />} />
         <Route path="/g/:code" element={<GamePage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

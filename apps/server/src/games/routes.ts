@@ -7,9 +7,19 @@ import { GameError } from "./errors.js";
 import {
   createGameSession,
   joinGameSession,
+  questionEligibilityWhere,
   startGameSession,
   updateGameConfig,
 } from "./service.js";
+import {
+  CUSTOM_CARD_TAGS_MAX,
+  CUSTOM_CARD_TAG_LENGTH_MAX,
+  CUSTOM_CARD_TEXT_MAX,
+  createCustomCard,
+  deleteCustomCard,
+  listMyCustomCards,
+  updateCustomCard,
+} from "./customCards.js";
 import { submitVote } from "./voting.js";
 import { submitTieBreakVote } from "./tiebreak.js";
 import { revealNextQuestion } from "./reveal.js";
@@ -68,8 +78,16 @@ async function loadSessionAndPlayer(joinCode: string, userId: string) {
 export default async function gameRoutes(app: FastifyInstance) {
   app.addHook("preHandler", requireAuth);
 
-  app.get("/questions/tags", async (_request, reply) => {
-    const rows = await prisma.questionBank.findMany({ select: { tags: true } });
+  // Every read here is scoped to "the built-in bank, plus my own custom
+  // cards" — custom cards are private to their creator (see
+  // questionEligibilityWhere), so this is the same eligibility a game this
+  // user hosts would actually draw from.
+
+  app.get("/questions/tags", async (request, reply) => {
+    const rows = await prisma.questionBank.findMany({
+      where: questionEligibilityWhere(request.user!.id),
+      select: { tags: true },
+    });
     const tags = [...new Set(rows.flatMap((r) => r.tags))].sort();
     return reply.send({ tags });
   });
@@ -78,8 +96,11 @@ export default async function gameRoutes(app: FastifyInstance) {
   // many questions survive a given set of excluded tags, using the same
   // filterQuestionsByTags used server-side, so the "not enough questions"
   // warning matches what starting the game will actually enforce.
-  app.get("/questions/bank-summary", async (_request, reply) => {
-    const rows = await prisma.questionBank.findMany({ select: { id: true, tags: true } });
+  app.get("/questions/bank-summary", async (request, reply) => {
+    const rows = await prisma.questionBank.findMany({
+      where: questionEligibilityWhere(request.user!.id),
+      select: { id: true, tags: true },
+    });
     return reply.send(rows);
   });
 
@@ -93,6 +114,7 @@ export default async function gameRoutes(app: FastifyInstance) {
     const { search, tags, limit, offset } = query;
 
     const where = {
+      ...questionEligibilityWhere(request.user!.id),
       ...(search ? { text: { contains: search, mode: "insensitive" as const } } : {}),
       ...(tags.length > 0 ? { tags: { hasSome: tags } } : {}),
     };
@@ -109,6 +131,39 @@ export default async function gameRoutes(app: FastifyInstance) {
     ]);
 
     return reply.send({ items, total, limit, offset });
+  });
+
+  const CustomCardBodySchema = z.object({
+    text: z.string().trim().min(1).max(CUSTOM_CARD_TEXT_MAX),
+    tags: z.array(z.string().trim().min(1).max(CUSTOM_CARD_TAG_LENGTH_MAX)).max(CUSTOM_CARD_TAGS_MAX).default([]),
+  });
+
+  // A user's own custom cards, private to them — never mixed into the
+  // public /questions browse above or shown to anyone else.
+  app.get("/questions/custom", async (request, reply) => {
+    const cards = await listMyCustomCards(request.user!.id);
+    return reply.send(cards);
+  });
+
+  app.post("/questions/custom", async (request, reply) => {
+    const body = parseBody(reply, CustomCardBodySchema, request.body);
+    if (body === null) return;
+    const card = await createCustomCard(request.user!.id, body.text, body.tags);
+    return reply.code(201).send(card);
+  });
+
+  app.patch("/questions/custom/:id", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    const body = parseBody(reply, CustomCardBodySchema, request.body);
+    if (body === null) return;
+    const card = await updateCustomCard(request.user!.id, id, body.text, body.tags);
+    return reply.send(card);
+  });
+
+  app.delete("/questions/custom/:id", async (request, reply) => {
+    const { id } = request.params as { id: string };
+    await deleteCustomCard(request.user!.id, id);
+    return reply.code(204).send();
   });
 
   app.post("/sessions", async (request, reply) => {

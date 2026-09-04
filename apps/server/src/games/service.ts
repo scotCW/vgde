@@ -16,6 +16,16 @@ import { prisma } from "../db.js";
 import { GameError } from "./errors.js";
 import { rooms } from "./rooms.js";
 
+/**
+ * A question is eligible for a game hosted by `hostUserId` if it's a
+ * built-in bank question (createdByUserId null) or a custom card that
+ * particular host created — custom cards are private to their creator,
+ * never mixed into anyone else's game or the public bank browse.
+ */
+export function questionEligibilityWhere(hostUserId: string) {
+  return { OR: [{ createdByUserId: null }, { createdByUserId: hostUserId }] };
+}
+
 export async function createGameSession(hostUserId: string, hostDisplayName: string) {
   let joinCode = generateJoinCode();
   // Extremely unlikely to collide, but retry a few times just in case.
@@ -130,7 +140,10 @@ export async function startGameSession(sessionId: string, requesterUserId: strin
   const config = GameConfigSchema.parse(session.config);
   const playerIds = session.players.map((p) => p.id);
 
-  const bankQuestions = filterQuestionsByTags(await prisma.questionBank.findMany(), config.excludedTags);
+  const bankQuestions = filterQuestionsByTags(
+    await prisma.questionBank.findMany({ where: questionEligibilityWhere(requesterUserId) }),
+    config.excludedTags,
+  );
   const eligibleCount = bankQuestions.length;
   if (eligibleCount === 0) {
     // FIRST_TO_N_CARDS clamps its batch size down to whatever's eligible
@@ -164,6 +177,7 @@ export async function startGameSession(sessionId: string, requesterUserId: strin
         id: randomUUID(),
         gameSessionId: sessionId,
         questionId: q.id,
+        text: q.text,
         orderIndex: i,
         status: "VOTING",
       })),

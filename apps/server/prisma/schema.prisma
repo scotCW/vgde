@@ -18,6 +18,7 @@ model User {
   authSessions      AuthSession[]
   hostedGames       GameSession[]  @relation("HostedGames")
   players           Player[]
+  customQuestions   QuestionBank[] @relation("CustomQuestions")
 
   @@map("users")
 }
@@ -59,7 +60,11 @@ enum GameStatus {
 model GameSession {
   id          String            @id @default(uuid())
   joinCode    String            @unique
-  hostUserId  String
+  // Nullable so a completed game's history survives its host deleting their
+  // account later — see Player.userId for the same reasoning. Any
+  // non-completed game blocks the host from deleting their account in the
+  // first place, so this is only ever null on a COMPLETED session.
+  hostUserId  String?
   status      GameStatus        @default(LOBBY)
   // Validated against the GameConfig zod schema in @voting-game/shared
   // before every write; jsonb is just the storage shape.
@@ -76,7 +81,7 @@ model GameSession {
   startedAt   DateTime?
   completedAt DateTime?
 
-  host        User              @relation("HostedGames", fields: [hostUserId], references: [id])
+  host        User?             @relation("HostedGames", fields: [hostUserId], references: [id], onDelete: SetNull)
   players     Player[]
   questions   SessionQuestion[]
   voteCards   VoteCard[]
@@ -125,14 +130,19 @@ model TagVote {
 model Player {
   id            String      @id @default(uuid())
   gameSessionId String
-  userId        String
+  // Nullable: account deletion is blocked while a user is a player in any
+  // non-completed game (see accountDeletion.ts), so this only ever goes
+  // null retroactively, once a game has already finished — displayName and
+  // cardsWon stay put so completed-game history/results stay intact for
+  // the other, still-existing players.
+  userId        String?
   displayName   String
   isConfigurator Boolean    @default(false)
   cardsWon      Int         @default(0)
   joinedAt      DateTime    @default(now())
 
   gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
-  user          User        @relation(fields: [userId], references: [id])
+  user          User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   votesCast     Vote[]      @relation("VoterVotes")
 
@@ -144,6 +154,15 @@ model QuestionBank {
   id    String @id @default(uuid())
   text  String
   tags  String[]
+
+  // null = built-in/curated bank question, available to everyone. Non-null
+  // = a user-authored custom card, only ever eligible in games *that user*
+  // hosts (see questionEligibilityWhere in service.ts) — never shown to
+  // other users or mixed into the shared public bank. Deleting the account
+  // deletes these along with it.
+  createdByUserId String?
+  createdBy       User?  @relation("CustomQuestions", fields: [createdByUserId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
 
   sessionQuestions SessionQuestion[]
 
@@ -164,14 +183,21 @@ enum SessionQuestionStatus {
 model SessionQuestion {
   id            String                 @id @default(uuid())
   gameSessionId String
-  questionId    String
+  // Denormalized copy of QuestionBank.text at draw time. Once drawn, a
+  // question's wording in a game is a historical fact — it shouldn't
+  // change if the source row is later edited, and it must survive the
+  // source row being deleted entirely (a custom card whose creator deletes
+  // their account, e.g.). questionId is kept as a best-effort back-
+  // reference only; text is the source of truth for display everywhere.
+  text          String                 @default("")
+  questionId    String?
   orderIndex    Int
   status        SessionQuestionStatus  @default(PENDING)
   revealedAt    DateTime?
   winnerPlayerId String?
 
   gameSession   GameSession            @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
-  question      QuestionBank           @relation(fields: [questionId], references: [id])
+  question      QuestionBank?          @relation(fields: [questionId], references: [id], onDelete: SetNull)
   votes         Vote[]
   tieBreakRounds TieBreakRound[]
 

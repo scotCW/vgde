@@ -64,7 +64,7 @@ export async function serializeVotingQuestionsForPlayer(sessionId: string, playe
 
   const questions = await prisma.sessionQuestion.findMany({
     where: { gameSessionId: sessionId, status: "VOTING" },
-    include: { question: true, votes: { where: { voterPlayerId: playerId } } },
+    include: { votes: { where: { voterPlayerId: playerId } } },
     orderBy: { orderIndex: "asc" },
   });
 
@@ -77,7 +77,7 @@ export async function serializeVotingQuestionsForPlayer(sessionId: string, playe
     const myVote = q.votes[0] ?? null;
     return {
       sessionQuestionId: q.id,
-      text: q.question.text,
+      text: q.text,
       orderIndex: q.orderIndex,
       myVote: myVote ? { targetPlayerId: myVote.targetPlayerId, isAutoAbstain: myVote.isAutoAbstain } : null,
       availableTargetPlayerIds: deck ? remainingTargets(deck, playerId) : null,
@@ -89,7 +89,7 @@ export async function serializeVotingQuestionsForPlayer(sessionId: string, playe
 export async function serializeResults(sessionId: string) {
   const revealed = await prisma.sessionQuestion.findMany({
     where: { gameSessionId: sessionId, status: "REVEALED" },
-    include: { question: true, votes: true },
+    include: { votes: true },
     orderBy: { orderIndex: "asc" },
   });
 
@@ -100,7 +100,7 @@ export async function serializeResults(sessionId: string) {
     }
     return {
       sessionQuestionId: q.id,
-      text: q.question.text,
+      text: q.text,
       orderIndex: q.orderIndex,
       tally: Object.fromEntries(counts),
       winnerPlayerId: q.winnerPlayerId,

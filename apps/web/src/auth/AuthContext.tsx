@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
-import { ApiError, get, post } from "../api.js";
+import { ApiError, del, get, post } from "../api.js";
 
 export interface Me {
   id: string;
@@ -19,6 +19,7 @@ interface AuthState {
   register: (email: string, password: string, displayName: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
   oidcEnabled: boolean;
   passwordLoginEnabled: boolean;
 }
@@ -72,9 +73,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const deleteAccount = useCallback(async () => {
+    await del("/me");
+    setUser(null);
+  }, []);
+
   return (
     <AuthContext.Provider
-      value={{ user, loading, register, login, logout, oidcEnabled, passwordLoginEnabled }}
+      value={{ user, loading, register, login, logout, deleteAccount, oidcEnabled, passwordLoginEnabled }}
     >
       {children}
     </AuthContext.Provider>

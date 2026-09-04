@@ -1,14 +1,32 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { post } from "../api.js";
+import { ApiError, post } from "../api.js";
 import { useAuth } from "../auth/AuthContext.js";
 
 export default function HomePage() {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, deleteAccount } = useAuth();
   const [joinCode, setJoinCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  async function confirmDeleteAccount() {
+    setDeleteBusy(true);
+    setDeleteError(null);
+    try {
+      await deleteAccount();
+    } catch (err) {
+      setDeleteError(
+        err instanceof ApiError && err.code === "ACTIVE_GAME"
+          ? err.message
+          : "Couldn't delete your account. Try again.",
+      );
+      setDeleteBusy(false);
+    }
+  }
 
   async function createGame() {
     setBusy(true);
@@ -84,9 +102,51 @@ export default function HomePage() {
 
       {error && <p className="text-center text-sm text-danger">{error}</p>}
 
-      <Link to="/question-bank" className="text-center text-sm text-link underline hover:text-accent-hover">
-        Browse the question bank
-      </Link>
+      <div className="flex flex-col items-center gap-1 text-sm">
+        <Link to="/question-bank" className="text-link underline hover:text-accent-hover">
+          Browse the question bank
+        </Link>
+        <Link to="/my-cards" className="text-link underline hover:text-accent-hover">
+          My custom cards
+        </Link>
+      </div>
+
+      <div className="border-t border-border pt-4">
+        {!confirmingDelete ? (
+          <button
+            onClick={() => setConfirmingDelete(true)}
+            className="mx-auto block text-sm text-subtle hover:text-danger"
+          >
+            Delete my account
+          </button>
+        ) : (
+          <div className="rounded-2xl border border-danger-chip-border bg-danger-chip p-4 text-center">
+            <p className="mb-3 text-sm text-danger">
+              This permanently deletes your account and everything tied to it — no undo.
+            </p>
+            <div className="flex justify-center gap-2">
+              <button
+                onClick={() => void confirmDeleteAccount()}
+                disabled={deleteBusy}
+                className="rounded-lg bg-danger px-3 py-1.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-50"
+              >
+                Yes, delete it
+              </button>
+              <button
+                onClick={() => {
+                  setConfirmingDelete(false);
+                  setDeleteError(null);
+                }}
+                disabled={deleteBusy}
+                className="rounded-lg border border-border-strong px-3 py-1.5 text-sm hover:bg-surface-alt"
+              >
+                Cancel
+              </button>
+            </div>
+            {deleteError && <p className="mt-3 text-sm text-danger">{deleteError}</p>}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

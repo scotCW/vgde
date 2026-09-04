@@ -12,7 +12,9 @@ export interface SessionDto {
   id: string;
   joinCode: string;
   status: "LOBBY" | "VOTING" | "COMPLETED";
-  hostUserId: string;
+  // null once the host has deleted their account after a game completed —
+  // see the server's schema comments on GameSession.hostUserId.
+  hostUserId: string | null;
   config: GameConfig;
   modeVoteOpen: boolean;
   tagVoteOpen: boolean;
@@ -26,6 +28,13 @@ export interface SessionDto {
 export interface QuestionBankSummaryItem {
   id: string;
   tags: string[];
+}
+
+export interface CustomCardDto {
+  id: string;
+  text: string;
+  tags: string[];
+  createdAt: string;
 }
 
 export interface QuestionDto {
