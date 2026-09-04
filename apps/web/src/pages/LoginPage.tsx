@@ -35,7 +35,7 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
       <div className="w-full max-w-sm rounded-2xl border border-border bg-surface p-8 shadow-xl">
-        <h1 className="mb-1 text-2xl font-bold">The Voting Game</h1>
+        <h1 className="mb-1 text-2xl font-bold">VGDE</h1>
         <p className="mb-6 text-sm text-muted">
           {passwordLoginEnabled
             ? mode === "login"

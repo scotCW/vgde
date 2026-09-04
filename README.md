@@ -1,8 +1,9 @@
-# The Voting Game — Digital
+# VGDE
 
-A self-hosted, browser-based adaptation of *The Voting Game*, with anonymous
-voting (no "guess who voted for whom"), batched at-your-own-pace voting
-instead of strict rounds, and two configurable rule sets.
+A self-hosted, browser-based party game inspired by voting-based party games
+like *The Voting Game*, with anonymous voting (no "guess who voted for
+whom"), batched at-your-own-pace voting instead of strict rounds, and two
+configurable rule sets.
 
 ## Game modes
 
@@ -302,7 +303,7 @@ changes, just client setup on the Pocket ID side:
    login itself — a first-time OIDC login always auto-provisions
    correctly either way.
 2. Go to **OIDC Clients → Add OIDC Client**.
-   - **Name**: whatever you want (e.g. `The Voting Game`).
+   - **Name**: whatever you want (e.g. `VGDE`).
    - **Callback URLs**: exactly your `OIDC_REDIRECT_URI` value, e.g.
      `https://voting.example.com/auth/oidc/callback`. Pocket ID matches
      this exactly, so no trailing slash, no path differences.
