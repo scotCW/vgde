@@ -132,6 +132,13 @@ export async function startGameSession(sessionId: string, requesterUserId: strin
 
   const bankQuestions = filterQuestionsByTags(await prisma.questionBank.findMany(), config.excludedTags);
   const eligibleCount = bankQuestions.length;
+  if (eligibleCount === 0) {
+    // FIRST_TO_N_CARDS clamps its batch size down to whatever's eligible
+    // (see below) rather than refusing to start on a small bank — but
+    // clamping down to zero would start a game with no questions to vote
+    // on at all, so that one case still needs an explicit refusal.
+    throw new GameError("NOT_ENOUGH_QUESTIONS", "No questions match the current filters");
+  }
   const batchCount =
     config.mode === "FIRST_TO_N_CARDS"
       ? Math.min(config.batchSize ?? DEFAULT_BATCH_SIZE, eligibleCount)
