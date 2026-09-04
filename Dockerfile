@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-FROM node:22-bookworm-slim AS build
+FROM node:26-bookworm-slim AS build
 WORKDIR /repo
 
 # Prisma's query engine needs libssl to be resolvable at generate time.
@@ -22,7 +22,7 @@ RUN npm run build --workspace=@voting-game/shared \
  && npm run build --workspace=@voting-game/server \
  && npm run build --workspace=@voting-game/web
 
-FROM node:22-bookworm-slim AS runtime
+FROM node:26-bookworm-slim AS runtime
 WORKDIR /repo
 ENV NODE_ENV=production
 
