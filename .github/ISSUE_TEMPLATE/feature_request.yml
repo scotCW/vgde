@@ -1,0 +1,42 @@
+name: Feature request
+description: Suggest a new game mode, admin option, or anything else
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What's the problem or gap this would solve?
+      description: What can't you do today that you'd want to?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What would you want instead?
+      description: Rough idea is fine — doesn't need to be a full spec.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: What part of the app does this touch?
+      multiple: true
+      options:
+        - A game mode (new one, or a change to Classic Count / Deck Mode / First to N Cards)
+        - Tie-breaking or reveal
+        - Question bank / categories
+        - Auth (password / OIDC)
+        - Deployment / hosting
+        - Something else
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Alternatives you considered, related issues, whatever's useful context.
+    validations:
+      required: false

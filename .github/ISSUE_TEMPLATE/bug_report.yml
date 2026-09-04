@@ -1,0 +1,53 @@
+name: Bug report
+description: Something isn't working the way it should
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, what actually happened instead?
+      placeholder: |
+        1. Started a Deck Mode game with 4 players
+        2. Voted on the first question
+        3. Expected my vote-card to be spent, but ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: game-mode
+    attributes:
+      label: Game mode (if relevant)
+      options:
+        - Not applicable
+        - Classic Count
+        - Deck Mode
+        - First to N Cards
+    validations:
+      required: false
+
+  - type: input
+    id: version
+    attributes:
+      label: How are you running it?
+      description: e.g. "docker compose from a fresh clone", "the hosted instance at ...", a commit hash
+      placeholder: docker compose up -d --build on commit abc1234
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or errors
+      description: Server logs (`docker compose logs app`), browser console output, or a screenshot. Redact anything sensitive (session cookies, tokens, other players' info) first.
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Browser, OS, number of players, whatever seems relevant.
+    validations:
+      required: false
