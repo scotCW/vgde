@@ -26,6 +26,27 @@ export default function HomePage() {
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [exportBusy, setExportBusy] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  async function exportMyData() {
+    setExportBusy(true);
+    setExportError(null);
+    try {
+      const bundle = await get("/me/export");
+      const blob = new Blob([JSON.stringify(bundle, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "vgde-my-data.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setExportError("Couldn't export your data. Try again.");
+    } finally {
+      setExportBusy(false);
+    }
+  }
 
   const myGamesQuery = useQuery({
     queryKey: ["my-games"],
@@ -158,7 +179,16 @@ export default function HomePage() {
         </Link>
       </div>
 
-      <div className="border-t border-border pt-4">
+      <div className="flex flex-col items-center gap-2 border-t border-border pt-4">
+        <button
+          onClick={() => void exportMyData()}
+          disabled={exportBusy}
+          className="text-sm text-subtle hover:text-text disabled:opacity-50"
+        >
+          Export my data
+        </button>
+        {exportError && <p className="text-sm text-danger">{exportError}</p>}
+
         {!confirmingDelete ? (
           <button
             onClick={() => setConfirmingDelete(true)}
@@ -194,6 +224,15 @@ export default function HomePage() {
           </div>
         )}
       </div>
+
+      <a
+        href="https://github.com/scotCW/vgde"
+        target="_blank"
+        rel="noreferrer"
+        className="text-center text-xs text-subtle hover:text-muted"
+      >
+        View on GitHub
+      </a>
     </div>
   );
 }
