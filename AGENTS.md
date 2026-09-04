@@ -109,8 +109,6 @@ with zero test files today).
   directly — release immutability is on for this repo, so a published
   release's tag/assets can't be changed afterward. Always `draft: true`
   and let the actual publish be a manual, deliberate step.
-- Commit messages end with `Co-Authored-By: Claude Sonnet 5
-  <noreply@anthropic.com>` when an agent makes the change.
 - Comments explain *why*, not *what* — the codebase leans on this
   consistently (see any of the files mentioned above for the tone/level
   of detail expected).
