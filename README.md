@@ -92,8 +92,8 @@ is Docker Compose (works identically on Linux and Mac, no Homebrew):
 
 ```bash
 cp .env.example .env
-# edit .env: set SESSION_SECRET (openssl rand -base64 48) and a real
-# POSTGRES_PASSWORD
+openssl rand -base64 48   # paste the output in as SESSION_SECRET in .env
+# also set a real POSTGRES_PASSWORD in .env
 docker compose up -d db
 ```
 
@@ -139,7 +139,9 @@ npm test   # runs vitest across all workspaces; the meaningful coverage is
 ## Running in production
 
 ```bash
-cp .env.example .env   # fill in SESSION_SECRET, POSTGRES_PASSWORD, etc.
+cp .env.example .env
+openssl rand -base64 48   # paste the output in as SESSION_SECRET in .env
+# also fill in POSTGRES_PASSWORD, etc.
 docker compose up -d --build
 ```
 
