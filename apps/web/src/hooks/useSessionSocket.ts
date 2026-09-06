@@ -12,6 +12,7 @@ export type SessionSocketEvent =
   | { event: "tagvote:resolved"; payload: { excludedTags: string[] } }
   | { event: "game:started"; payload: { questionCount: number } }
   | { event: "host:removed_game"; payload: object }
+  | { event: "lobby:join_lock_changed"; payload: { locked: boolean } }
   | { event: "vote:progress"; payload: { submitted: number; total: number } }
   | { event: "tiebreak:started"; payload: { sessionQuestionId: string; tieBreakRoundId: string; text: string; candidatePlayerIds: string[] } }
   | { event: "tiebreak:resolved"; payload: { sessionQuestionId: string; winnerPlayerId: string | null } }

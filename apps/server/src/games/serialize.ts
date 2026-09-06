@@ -44,6 +44,7 @@ export async function serializeSessionForPlayer(sessionId: string, requestingPla
     config,
     modeVoteOpen: session.modeVoteOpen,
     tagVoteOpen: session.tagVoteOpen,
+    joinLocked: session.joinLocked,
     // null when no vote is currently open.
     myModeVoteStatus,
     myTagVoteStatus,

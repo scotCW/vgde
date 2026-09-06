@@ -77,6 +77,12 @@ model GameSession {
   // TagVote). Mutually exclusive with modeVoteOpen — only one vote runs at
   // a time.
   tagVoteOpen  Boolean          @default(false)
+  // Host-only lobby toggle: while true, no *new* player can join (a clear
+  // 403, not a silent no-op) but everyone already in can still do
+  // everything else — configure, vote on mode/categories, and the host can
+  // still start the game. Never itself vote-delegatable, to avoid a "vote
+  // on whether to allow voting" loop. Only meaningful in LOBBY.
+  joinLocked  Boolean           @default(false)
   createdAt   DateTime          @default(now())
   startedAt   DateTime?
   completedAt DateTime?

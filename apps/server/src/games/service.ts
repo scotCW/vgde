@@ -121,6 +121,10 @@ export async function joinGameSession(joinCode: string, userId: string, displayN
   });
   if (existing) return { session, player: existing };
 
+  if (session.joinLocked) {
+    throw new GameError("JOINING_LOCKED", "The host has locked this game to new players", 403);
+  }
+
   const player = await prisma.player.create({
     data: { id: randomUUID(), gameSessionId: session.id, userId, displayName },
   });
@@ -131,6 +135,25 @@ export async function joinGameSession(joinCode: string, userId: string, displayN
   });
 
   return { session, player };
+}
+
+/**
+ * Host-only lobby toggle. Locking never affects players already in —
+ * config edits, mode/tag votes, and starting the game all keep working
+ * exactly as before; it only blocks brand-new joins from this point on.
+ */
+export async function setJoinLocked(sessionId: string, requesterUserId: string, locked: boolean) {
+  const session = await prisma.gameSession.findUnique({ where: { id: sessionId } });
+  if (!session) throw new GameError("SESSION_NOT_FOUND", "Session not found", 404);
+  if (session.hostUserId !== requesterUserId) {
+    throw new GameError("NOT_HOST", "Only the host can lock or unlock joining", 403);
+  }
+  if (session.status !== "LOBBY") {
+    throw new GameError("SESSION_ALREADY_STARTED", "Game already started", 409);
+  }
+
+  await prisma.gameSession.update({ where: { id: sessionId }, data: { joinLocked: locked } });
+  rooms.broadcast(sessionId, "lobby:join_lock_changed", { locked });
 }
 
 export async function updateGameConfig(

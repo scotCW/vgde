@@ -10,6 +10,7 @@ import {
   joinGameSession,
   listMyGames,
   questionEligibilityWhere,
+  setJoinLocked,
   startGameSession,
   updateGameConfig,
 } from "./service.js";
@@ -247,6 +248,15 @@ export default async function gameRoutes(app: FastifyInstance) {
     const { session } = await loadSessionAndPlayer(code.toUpperCase(), request.user!.id);
     const config = await updateGameConfig(session.id, request.user!.id, request.body);
     return reply.send(config);
+  });
+
+  app.post("/sessions/:code/join-lock", async (request, reply) => {
+    const { code } = request.params as { code: string };
+    const body = parseBody(reply, z.object({ locked: z.boolean() }), request.body);
+    if (body === null) return;
+    const { session } = await loadSessionAndPlayer(code.toUpperCase(), request.user!.id);
+    await setJoinLocked(session.id, request.user!.id, body.locked);
+    return reply.code(204).send();
   });
 
   app.post("/sessions/:code/mode-vote/open", async (request, reply) => {

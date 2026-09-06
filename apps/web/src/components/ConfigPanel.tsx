@@ -16,6 +16,7 @@ interface Props {
   playerCount: number;
   modeVoteOpen: boolean;
   tagVoteOpen: boolean;
+  joinLocked: boolean;
   onChanged: () => void;
 }
 
@@ -26,11 +27,26 @@ export default function ConfigPanel({
   playerCount,
   modeVoteOpen,
   tagVoteOpen,
+  joinLocked,
   onChanged,
 }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lockBusy, setLockBusy] = useState(false);
   const voteOpen = modeVoteOpen || tagVoteOpen;
+
+  async function toggleJoinLock() {
+    setLockBusy(true);
+    setError(null);
+    try {
+      await post(`/sessions/${code}/join-lock`, { locked: !joinLocked });
+      onChanged();
+    } catch {
+      setError("Couldn't change joining.");
+    } finally {
+      setLockBusy(false);
+    }
+  }
 
   const tagsQuery = useQuery({
     queryKey: ["question-tags"],
@@ -133,11 +149,32 @@ export default function ConfigPanel({
         </p>
       )}
 
+      <div className="mb-4 flex items-center justify-between rounded-lg border border-border-strong px-3 py-2">
+        <div>
+          <p className="text-sm font-medium">{joinLocked ? "Joining is locked" : "Anyone with the code can join"}</p>
+          <p className="text-xs text-subtle">
+            {joinLocked
+              ? "New players can't join. Everyone already here is unaffected."
+              : "Lock this once your group's all in, so a stray link doesn't add a new player mid-setup."}
+          </p>
+        </div>
+        {isHost && (
+          <button
+            type="button"
+            onClick={() => void toggleJoinLock()}
+            disabled={lockBusy}
+            className="shrink-0 rounded-lg border border-border-strong px-3 py-1.5 text-sm hover:bg-surface-alt disabled:opacity-50"
+          >
+            {joinLocked ? "Unlock" : "Lock"}
+          </button>
+        )}
+      </div>
+
       <fieldset disabled={!isHost || busy || voteOpen} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1">
           <span className="text-sm text-muted">Mode</span>
           <select
-            className="rounded-lg border border-border-strong bg-input px-3 py-2"
+            className="w-full rounded-lg border border-border-strong bg-input px-3 py-2"
             value={config.mode}
             onChange={(e) => void update({ mode: e.target.value as GameConfig["mode"] })}
           >
@@ -164,7 +201,7 @@ export default function ConfigPanel({
               type="number"
               min={1}
               max={500}
-              className="rounded-lg border border-border-strong bg-input px-3 py-2"
+              className="w-full rounded-lg border border-border-strong bg-input px-3 py-2"
               value={config.questionCount ?? 10}
               onChange={(e) => void update({ questionCount: Number(e.target.value) })}
             />
@@ -179,7 +216,7 @@ export default function ConfigPanel({
                 type="number"
                 min={1}
                 max={50}
-                className="rounded-lg border border-border-strong bg-input px-3 py-2"
+                className="w-full rounded-lg border border-border-strong bg-input px-3 py-2"
                 value={config.targetCards}
                 onChange={(e) => void update({ targetCards: Number(e.target.value) })}
               />
@@ -190,7 +227,7 @@ export default function ConfigPanel({
                 type="number"
                 min={1}
                 max={50}
-                className="rounded-lg border border-border-strong bg-input px-3 py-2"
+                className="w-full rounded-lg border border-border-strong bg-input px-3 py-2"
                 value={config.batchSize}
                 onChange={(e) => void update({ batchSize: Number(e.target.value) })}
               />
@@ -223,10 +260,19 @@ export default function ConfigPanel({
           )}
         </div>
 
+        <label className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            checked={config.hideStandings}
+            onChange={(e) => void update({ hideStandings: e.target.checked })}
+          />
+          <span className="text-sm">Hide the standings while voting (avoid bandwagon votes)</span>
+        </label>
+
         <label className="flex flex-col gap-1">
           <span className="text-sm text-muted">Tie-break method</span>
           <select
-            className="rounded-lg border border-border-strong bg-input px-3 py-2"
+            className="w-full rounded-lg border border-border-strong bg-input px-3 py-2"
             value={config.tieBreak.method}
             onChange={(e) =>
               void update({
@@ -250,7 +296,7 @@ export default function ConfigPanel({
           <label className="flex flex-col gap-1">
             <span className="text-sm text-muted">If the runoff ties again</span>
             <select
-              className="rounded-lg border border-border-strong bg-input px-3 py-2"
+              className="w-full rounded-lg border border-border-strong bg-input px-3 py-2"
               value={config.tieBreak.runoffFallback ?? "NO_AWARD"}
               onChange={(e) =>
                 void update({
@@ -267,7 +313,7 @@ export default function ConfigPanel({
         <label className="flex flex-col gap-1">
           <span className="text-sm text-muted">Reveal style</span>
           <select
-            className="rounded-lg border border-border-strong bg-input px-3 py-2"
+            className="w-full rounded-lg border border-border-strong bg-input px-3 py-2"
             value={config.revealMode}
             onChange={(e) => void update({ revealMode: e.target.value as GameConfig["revealMode"] })}
           >

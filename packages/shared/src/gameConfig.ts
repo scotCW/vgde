@@ -51,6 +51,11 @@ export const GameConfigSchema = z
     // Question-bank tags to leave out of this session's draw pool (e.g.
     // "nsfw", "alcohol"). Empty means nothing is filtered out.
     excludedTags: z.array(z.string()).default([]),
+    // Hides each player's card count while voting (LOBBY/VOTING) so people
+    // can't see who's ahead and bandwagon-vote toward them. Standings are
+    // always shown again once the game COMPLETED — nothing left to bias at
+    // that point.
+    hideStandings: z.boolean().default(false),
   })
   .refine((v) => v.mode !== "CLASSIC_COUNT" || v.questionCount !== undefined, {
     message: "questionCount is required when mode is CLASSIC_COUNT",
@@ -88,6 +93,7 @@ export const DEFAULT_CLASSIC_CONFIG: GameConfig = {
   tieBreak: { method: "RANDOM" },
   revealMode: "ALL_AT_ONCE",
   excludedTags: [],
+  hideStandings: false,
 };
 
 export const DEFAULT_DECK_CONFIG: GameConfig = {
@@ -98,4 +104,5 @@ export const DEFAULT_DECK_CONFIG: GameConfig = {
   tieBreak: { method: "RANDOM" },
   revealMode: "ALL_AT_ONCE",
   excludedTags: [],
+  hideStandings: false,
 };

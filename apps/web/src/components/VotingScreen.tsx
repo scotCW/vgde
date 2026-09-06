@@ -93,7 +93,7 @@ export default function VotingScreen({
                     }`}
                     title={isDeck && !available && !selected ? "Already voted for this person" : undefined}
                   >
-                    <Identicon seed={p.id} size={18} />
+                    <Identicon seed={p.id} size={18} className="h-[18px] w-[18px] md:h-7 md:w-7" />
                     {p.displayName}
                   </button>
                 );

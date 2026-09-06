@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { GameModeSchema } from "@voting-game/shared";
 import { get, post } from "../api.js";
@@ -14,6 +14,7 @@ import TieBreakPrompt, { type ActiveTieBreak } from "../components/TieBreakPromp
 import ModeVotePanel from "../components/ModeVotePanel.js";
 import TagVotePanel from "../components/TagVotePanel.js";
 import Identicon from "../components/Identicon.js";
+import GameCodeQr from "../components/GameCodeQr.js";
 
 const ALL_MODES = GameModeSchema.options;
 
@@ -157,15 +158,25 @@ export default function GamePage() {
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-8">
-      <header className="flex items-center justify-between">
+      <header className="flex items-center justify-between gap-2">
         <div>
+          <Link to="/" className="mb-1 inline-block text-sm text-link underline hover:text-accent-hover">
+            ← Home
+          </Link>
           <h1 className="text-xl font-bold">Game {session.joinCode}</h1>
           <p className="text-sm text-muted">Share this code with your group.</p>
         </div>
         {session.status === "COMPLETED" && <span className="rounded-full bg-emerald-700 px-3 py-1 text-sm text-white">Game over</span>}
+        {session.status === "LOBBY" && !session.joinLocked && (
+          // mt-12: clears the fixed theme toggle in the same corner.
+          <GameCodeQr value={`${window.location.origin}/g/${session.joinCode}`} size={96} className="mt-12" />
+        )}
       </header>
 
-      <StandingsBar players={session.players} />
+      <StandingsBar
+        players={session.players}
+        hideCardsWon={session.config.hideStandings && session.status !== "COMPLETED"}
+      />
 
       {hostRemovedGame && (
         <div className="rounded-2xl border-2 border-panel-warning-border bg-panel-warning p-4 text-sm">
@@ -184,7 +195,7 @@ export default function GamePage() {
                   key={p.id}
                   className="flex items-center gap-1.5 rounded-full bg-surface-alt py-1 pl-1.5 pr-3 text-sm"
                 >
-                  <Identicon seed={p.id} size={18} />
+                  <Identicon seed={p.id} size={18} className="h-[18px] w-[18px] md:h-7 md:w-7" />
                   {p.displayName}
                   {p.isConfigurator && " (host)"}
                 </span>
@@ -221,6 +232,7 @@ export default function GamePage() {
             playerCount={session.players.length}
             modeVoteOpen={session.modeVoteOpen}
             tagVoteOpen={session.tagVoteOpen}
+            joinLocked={session.joinLocked}
             onChanged={invalidateAll}
           />
 
@@ -275,8 +287,21 @@ export default function GamePage() {
           players={session.players}
           revealMode={session.config.revealMode}
           isHost={isHost}
-          readyToRevealNext={readyToRevealNext}
+          // A completed game can never have anything left tallied-but-
+          // unrevealed (maybeAdvanceBatch only completes a game once
+          // that's confirmed) — always false here, not whatever
+          // readyToRevealNext happened to be from just before it ended.
+          readyToRevealNext={false}
         />
+      )}
+
+      {session.status === "COMPLETED" && (
+        <Link
+          to="/"
+          className="rounded-lg border border-border-strong px-4 py-2 text-center font-medium hover:bg-surface-alt"
+        >
+          Back to home
+        </Link>
       )}
     </div>
   );

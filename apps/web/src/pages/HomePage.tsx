@@ -107,8 +107,12 @@ export default function HomePage() {
       const code = joinCode.trim().toUpperCase();
       await post(`/sessions/${code}/join`, {});
       navigate(`/g/${code}`);
-    } catch {
-      setError("Couldn't join — check the code and try again.");
+    } catch (err) {
+      setError(
+        err instanceof ApiError && err.code === "JOINING_LOCKED"
+          ? err.message
+          : "Couldn't join — check the code and try again.",
+      );
     } finally {
       setBusy(false);
     }

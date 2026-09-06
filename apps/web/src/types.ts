@@ -18,6 +18,7 @@ export interface SessionDto {
   config: GameConfig;
   modeVoteOpen: boolean;
   tagVoteOpen: boolean;
+  joinLocked: boolean;
   /** null when no vote is currently open; mode is null within it only if this player voted to abstain. */
   myModeVoteStatus: { voted: boolean; mode: GameConfig["mode"] | null } | null;
   /** null when no vote is currently open. */
