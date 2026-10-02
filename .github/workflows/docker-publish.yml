@@ -33,7 +33,7 @@ jobs:
       # - "latest" only on master (not on tag builds)
       # - the git tag itself for a "v*" push (e.g. "v1.2.0")
       # - the commit SHA, always, so any build can be pinned/traced back
-      - uses: docker/metadata-action@v5
+      - uses: docker/metadata-action@v6
         id: meta
         with:
           images: ghcr.io/${{ github.repository }}
