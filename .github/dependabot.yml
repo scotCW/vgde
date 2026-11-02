@@ -21,6 +21,13 @@ updates:
       # routes.ts's parseBody). A major-version bump here needs an actual
       # migration pass, not an automated PR.
       - dependency-name: "zod"
+      # Prisma 7 needs prisma.config.ts and a driver adapter (see AGENTS.md),
+      # so major bumps need a real migration. Minor and patch updates still
+      # come through.
+      - dependency-name: "prisma"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@prisma/client"
+        update-types: ["version-update:semver-major"]
     commit-message:
       prefix: "deps"
 
