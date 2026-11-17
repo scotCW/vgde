@@ -14,13 +14,11 @@ updates:
           - "minor"
           - "patch"
     ignore:
-      # Pinned to exactly 3.23.8, deliberately: 3.25.x+ ships zod 4's
-      # internals under a v3-compat shim with a different top-level export
-      # shape, which caused two separate zod module instances to load in
-      # this repo and broke `instanceof ZodError` checks (see app.ts and
-      # routes.ts's parseBody). A major-version bump here needs an actual
-      # migration pass, not an automated PR.
+      # packages/shared and apps/server must move to a new zod major
+      # together (two installed copies break `instanceof ZodError` — see
+      # AGENTS.md), and Dependabot bumps them one manifest at a time.
       - dependency-name: "zod"
+        update-types: ["version-update:semver-major"]
       # Prisma 7 needs prisma.config.ts and a driver adapter (see AGENTS.md),
       # so major bumps need a real migration. Minor and patch updates still
       # come through.

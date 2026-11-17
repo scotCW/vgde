@@ -55,14 +55,12 @@ const QuestionsQuerySchema = z.object({
 
 /**
  * Validates a request body and sends a 400 directly on failure, returning
- * null so the caller can just `return` — deliberately not `.parse()` +
- * relying on the global error handler for ZodError: some versions of zod
- * ship errors that don't reliably identify as ZodError once they cross a
- * plugin boundary (see app.ts's error handler comment), which turned this
- * into a 500 instead of a 400 in practice. safeParse + an inline response
- * sidesteps that entirely.
+ * null so the caller can just `return`. safeParse + an inline response keeps
+ * the 400 independent of how the global error handler recognises zod
+ * errors — that check once broke when two copies of zod were installed
+ * (see app.ts's error handler).
  */
-function parseBody<T>(reply: FastifyReply, schema: ZodType<T, z.ZodTypeDef, unknown>, body: unknown): T | null {
+function parseBody<S extends ZodType>(reply: FastifyReply, schema: S, body: unknown): z.output<S> | null {
   const result = schema.safeParse(body);
   if (!result.success) {
     reply.code(400).send({ error: "INVALID_INPUT", issues: result.error.issues });

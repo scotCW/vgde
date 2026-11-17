@@ -71,11 +71,9 @@ export async function buildApp(envOverride?: Env) {
     if (error instanceof GameError) {
       return reply.code(error.statusCode).send({ error: error.code, message: error.message });
     }
-    // Duck-typed alongside instanceof: zod's package has shipped versions
-    // whose top-level export and its own thrown errors don't reliably pass
-    // `instanceof ZodError` (see zod's "3.25.x is actually a v4 compat
-    // shim" transition) — this must not silently fall through to 500 for
-    // routine input validation failures.
+    // Duck-typed alongside instanceof: if a second copy of zod is ever
+    // installed, its errors fail `instanceof ZodError` (see AGENTS.md), and
+    // routine validation failures must not fall through to a 500.
     if (error instanceof ZodError || (error && (error as { name?: string }).name === "ZodError")) {
       const issues = error instanceof ZodError ? error.issues : (error as { issues?: unknown }).issues;
       return reply.code(400).send({ error: "INVALID_INPUT", issues });

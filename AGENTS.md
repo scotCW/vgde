@@ -41,18 +41,16 @@ with zero test files today).
   same kind of setup this was built on. `for x in $var; do` will NOT
   word-split in zsh the way it does in bash/sh — use `${=var}` or a real
   array. Cost real time to figure out mid-session; don't rediscover it.
-- **`zod` is pinned to exactly `3.23.8`** (no caret) in both
-  `packages/shared/package.json` and `apps/server/package.json`, and
-  Dependabot has an `ignore` rule for it in `.github/dependabot.yml`.
-  Versions from `3.25.x` onward ship zod 4's internals under a v3-compat
-  shim with a *different* top-level export shape — this caused two
-  separate `zod` module instances to load in this repo (one hoisted, one
-  nested) and broke `instanceof ZodError` checks, turning routine
-  input-validation failures into 500s instead of 400s. Don't bump it
-  without an actual migration pass; see the comments in `app.ts`'s error
-  handler and `routes.ts`'s `parseBody` helper for the full story and the
-  workaround (`safeParse` + manual response, not relying on
-  `instanceof`/the global error handler for zod errors specifically).
+- **There must only ever be one installed copy of `zod`.** `packages/shared`
+  defines schemas the server uses, so `packages/shared/package.json` and
+  `apps/server/package.json` must declare the same zod range (currently
+  `^4.6.7`) and move together. Two copies once loaded side by side (under
+  zod 3, with the 3.25.x "v4 compat" builds) and broke `instanceof
+  ZodError`, turning routine 400s into 500s. After any zod change, check
+  `npm ls zod` shows a single version. Dependabot ignores zod *major*
+  versions for this reason; minor and patch updates come through as usual.
+  Request bodies are validated with `routes.ts`'s `parseBody` (safeParse +
+  an inline 400) rather than relying on the global error handler.
 - **Prisma is pinned at `5.x`, deliberately not bumped to 7.** Prisma 7
   removes `datasource { url = env(...) }` from `schema.prisma` entirely —
   it requires a `prisma.config.ts` plus a driver adapter
